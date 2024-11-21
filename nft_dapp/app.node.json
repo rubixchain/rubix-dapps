@@ -1,1 +1,6 @@
-{}
+{
+	"user_did": "bafybmie6mnoefe6flkoel5bv64nsp5x64ssgh4ozrhmuykkd6cu2xerstq",
+	"non_quorum_node_address": "http://localhost:20003",
+	"nft_contract_hash": "QmTGmDZEwmwwe81tQmUteUQFfNBXTySp4mitW7EMJWbCUb",
+	"nft_contract_path": "C:\\Users\\allen\\Working-repo\\nft-test-setup\\TestNode2\\SmartContract\\QmTGmDZEwmwwe81tQmUteUQFfNBXTySp4mitW7EMJWbCUb\\nft_contract.wasm"
+}
