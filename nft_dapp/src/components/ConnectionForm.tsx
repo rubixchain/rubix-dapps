@@ -9,7 +9,7 @@ interface ConnectionFormProps {
 }
 
 export default function ConnectionForm({ type, onConnect, value, isConnected }: ConnectionFormProps) {
-  const [inputValue, setInputValue] = React.useState(value);
+  const [inputValue, setInputValue] = React.useState('');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,9 +23,9 @@ export default function ConnectionForm({ type, onConnect, value, isConnected }: 
       <div className="flex-1">
         <input
           type="text"
-          value={isConnected ? value : inputValue}
+          value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder={type === 'node' ? 'Enter Rubix Node Address' : 'Enter Wallet DID'}
+          placeholder={type === 'node' ? 'Enter Blockchain Node URL' : 'Enter Wallet Address'}
           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
           disabled={isConnected}
         />
@@ -42,7 +42,7 @@ export default function ConnectionForm({ type, onConnect, value, isConnected }: 
         {isConnected ? (
           <>
             <Check size={20} />
-            {type === 'node' ? 'Connected' : 'Connected'}
+            Connected
           </>
         ) : (
           <>

@@ -1,15 +1,14 @@
 import React from 'react';
-import { X } from 'lucide-react';
-import LoadingButton from './LoadingButton';
+import { X, AlertCircle } from 'lucide-react';
 
 interface TransferModalProps {
   isOpen: boolean;
   onClose: () => void;
   onTransfer: (recipient: string, value: number) => void;
-  isLoading: boolean;
+  isConfigured: boolean;
 }
 
-export default function TransferModal({ isOpen, onClose, onTransfer, isLoading }: TransferModalProps) {
+export default function TransferModal({ isOpen, onClose, onTransfer, isConfigured }: TransferModalProps) {
   const [recipient, setRecipient] = React.useState('');
   const [value, setValue] = React.useState('');
 
@@ -17,8 +16,38 @@ export default function TransferModal({ isOpen, onClose, onTransfer, isLoading }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isConfigured) return;
     onTransfer(recipient, parseFloat(value));
+    onClose();
   };
+
+  if (!isConfigured) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          >
+            <X size={24} />
+          </button>
+          
+          <div className="flex flex-col items-center gap-4 py-6">
+            <AlertCircle size={48} className="text-yellow-500" />
+            <p className="text-center text-gray-600">
+              Please connect both node and wallet to transfer NFTs
+            </p>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -63,13 +92,12 @@ export default function TransferModal({ isOpen, onClose, onTransfer, isLoading }
             />
           </div>
           
-          <LoadingButton
+          <button
             type="submit"
-            isLoading={isLoading}
-            className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400"
+            className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             Confirm Transfer
-          </LoadingButton>
+          </button>
         </form>
       </div>
     </div>

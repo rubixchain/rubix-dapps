@@ -1,30 +1,56 @@
 import React from 'react';
-import { Upload, FileText, X } from 'lucide-react';
-import LoadingButton from './LoadingButton';
+import { Upload, FileText, AlertCircle, X } from 'lucide-react';
 
 interface MintNFTFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onMint: (artifact: File, metadata: File) => void;
-  isLoading: boolean;
+  isConfigured: boolean;
 }
 
-export default function MintNFTForm({ isOpen, onClose, onMint, isLoading }: MintNFTFormProps) {
+export default function MintNFTForm({ isOpen, onClose, isConfigured }: MintNFTFormProps) {
   const [artifact, setArtifact] = React.useState<File | null>(null);
   const [metadata, setMetadata] = React.useState<File | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleMint = (e: React.FormEvent) => {
     e.preventDefault();
-    if (artifact && metadata) {
-      onMint(artifact, metadata);
-    }
+    if (!isConfigured) return;
+    console.log('Minting with:', { artifact, metadata });
+    onClose();
   };
+
+  if (!isConfigured) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          >
+            <X size={24} />
+          </button>
+          
+          <div className="flex flex-col items-center gap-4 py-6">
+            <AlertCircle size={48} className="text-yellow-500" />
+            <p className="text-center text-gray-600">
+              Please connect both node and wallet to mint NFTs
+            </p>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+      <div className="bg-white rounded-xl p-6 w-full max-w-2xl relative">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
@@ -34,7 +60,7 @@ export default function MintNFTForm({ isOpen, onClose, onMint, isLoading }: Mint
 
         <h2 className="text-2xl font-bold mb-6">Mint NFT</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleMint} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               NFT Artifact
@@ -91,13 +117,12 @@ export default function MintNFTForm({ isOpen, onClose, onMint, isLoading }: Mint
             </div>
           </div>
 
-          <LoadingButton
+          <button
             type="submit"
-            isLoading={isLoading}
-            className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400"
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             Mint NFT
-          </LoadingButton>
+          </button>
         </form>
       </div>
     </div>

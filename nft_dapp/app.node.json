@@ -1,1 +1,6 @@
-{}
+{
+    "user_did": "bafymdi",
+    "non_quorum_node_address": "https://node.com",
+    "nft_contract_hash": "QmW4CewqM8L8cMvxCED2pMYP7c2iwWnjafAnVBURPDZ58j",
+    "nft_contract_path": "/mnt/d/WASM/rubx_nft_app/nft_dapp/backend/nft_contract/artifacts/nft_contract.wasm"
+}
