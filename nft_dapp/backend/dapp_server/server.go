@@ -62,20 +62,23 @@ func runDAppHandler(c *gin.Context) {
 	var requestId string
 	switch funcName {
 	case "mint_sample_nft":
-		requestId = smartContractHash + "mint"
+		requestId = smartContractHash + "-mint"
 	case "transfer_sample_nft":
 		requestId = smartContractHash + "-transfer"
 	default:
-		requestId = ""
+		fmt.Println("This function name is not allowed")
+		return
 	}
 	checkResult, err := checkStringInRequests(requestId)
 	if err != nil {
 		fmt.Println("Error checking result:", err)
+		return
 	}
 	if !checkResult {
-		err = insertRequest(requestId, 0)
+		err = insertRequest(requestId, Pending) //Add constants for the status
 		if err != nil {
 			fmt.Println("Error inserting request:", err)
+			return
 		}
 	}
 
@@ -90,31 +93,40 @@ func runDAppHandler(c *gin.Context) {
 	)
 	if err != nil {
 		log.Fatalf("Failed to initialize WASM module: %v", err)
+		return
 	}
 
 	executionResult, err := executeAndGetContractResult(wasmModule, relevantData)
 	if err != nil {
 		log.Fatalf("Failed to execute contract: %v", err)
+		return
 	}
 	fmt.Println("The result returned is :", executionResult)
-	// Business logic for "run-dapp" operation
-	// Example: simulate running a DApp
 	var response BasicResponse
 
 	// Convert JSON string to struct
 	if executionResult == "success" {
-		response = BasicResponse{Status: true, Message: "NFT Transferred Succecfully"}
+		response = BasicResponse{Status: true, Message: "NFT Transferred Succesfully"}
 	} else {
 		err = json.Unmarshal([]byte(executionResult), &response)
 		if err != nil {
 			log.Fatalf("Error parsing JSON: %v", err)
+			return
 		}
 	}
 
 	if response.Status {
-		updateRequestStatus(requestId, 1)
+		err = updateRequestStatus(requestId, Success)
+		if err != nil {
+			fmt.Println("Error updating request status:", err)
+			return
+		} //handle error here
 	} else {
-		updateRequestStatus(requestId, 2)
+		err = updateRequestStatus(requestId, Failed)
+		if err != nil {
+			fmt.Println("Error updating request status:", err)
+			return
+		}
 	}
 	resultFinal := gin.H{
 		"message": "DApp executed successfully",
@@ -132,6 +144,7 @@ func getRequestStatusHandler(c *gin.Context) {
 	db, err := sql.Open("sqlite3", "./requests.db")
 	if err != nil {
 		log.Fatalf("Failed to open the database: %v", err)
+		return
 	}
 	defer db.Close()
 	var status int
@@ -145,6 +158,7 @@ func getRequestStatusHandler(c *gin.Context) {
 		if err == sql.ErrNoRows {
 			// No rows found
 			fmt.Printf("no record found with request_id: %s", reqId)
+			return
 		}
 		fmt.Printf("Query Failed")
 	}
@@ -163,9 +177,9 @@ func getRequestStatusHandler(c *gin.Context) {
 func bootupServer() {
 	// Initialize a Gin router
 	router := gin.Default()
-
+	config := GetConfig()
 	// Define endpoints
-	router.POST("/api/run-dapp", runDAppHandler)
+	router.POST(config.DappServerApi, runDAppHandler)
 	router.GET("/request-status", getRequestStatusHandler)
 
 	// Start the server on port 8080

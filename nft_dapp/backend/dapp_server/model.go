@@ -1,5 +1,11 @@
 package main
 
+const (
+	Pending = 0
+	Success = 1
+	Failed  = 2
+)
+
 type ContractInputRequest struct {
 	Port              string `json:"port"`
 	SmartContractHash string `json:"smart_contract_hash"` //port should also be added here, so that the api can understand which node.
@@ -10,6 +16,7 @@ type Config struct {
 	NodeAddress     string `json:"non_quorum_node_address"`
 	NftContractHash string `json:"nft_contract_hash"`
 	NftContractPath string `json:"nft_contract_path"`
+	DappServerApi   string `json:"dapp_server_api"`
 }
 
 type SmartContractDataReply struct {
