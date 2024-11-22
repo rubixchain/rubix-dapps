@@ -102,10 +102,15 @@ func runDAppHandler(c *gin.Context) {
 	var response BasicResponse
 
 	// Convert JSON string to struct
-	err = json.Unmarshal([]byte(executionResult), &response)
-	if err != nil {
-		log.Fatalf("Error parsing JSON: %v", err)
+	if executionResult == "success" {
+		response = BasicResponse{Status: true, Message: "NFT Transferred Succecfully"}
+	} else {
+		err = json.Unmarshal([]byte(executionResult), &response)
+		if err != nil {
+			log.Fatalf("Error parsing JSON: %v", err)
+		}
 	}
+
 	if response.Status {
 		updateRequestStatus(requestId, 1)
 	} else {
