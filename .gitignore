@@ -26,3 +26,9 @@ dist-ssr
 # Script elements
 rubixgoplatform/
 __pycache__
+
+# Target folder
+**/target/
+
+#db 
+*.db

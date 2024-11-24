@@ -62,5 +62,4 @@ pub fn transfer_sample_nft(transfer_sample_nft_req: TransferSampleNFTReq)-> Resu
         }
     }
 }
-//pub fn transfer_sample_nft(){}
 
