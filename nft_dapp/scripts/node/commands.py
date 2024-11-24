@@ -254,4 +254,41 @@ def cmd_deploy_smart_contract(contract_hash, deployer_did, server_port, grpc_por
     if code != 0:
         raise Exception("Error occurred while run the command: " + cmd_string)
     os.chdir("../../")
+
+def cmd_deploy_smart_contract(contract_hash, deployer_did, server_port, grpc_port):
+    os.chdir(os.path.join(os.getcwd(), "rubixgoplatform", get_build_dir()))
+    cmd_string = f"./rubixgoplatform deploysmartcontract -sct {contract_hash} -transType 2 -deployerAddr {deployer_did} -rbtAmount 2 -port {server_port} -grpcPort {grpc_port}"
+    if is_windows_os():
+        cmd_string = f".\\rubixgoplatform deploysmartcontract -sct {contract_hash} -transType 2 -deployerAddr {deployer_did} -rbtAmount 2 -port {server_port} -grpcPort {grpc_port}"
+    output, code = run_command(cmd_string, True)
+    print(output)
+    
+    if code != 0:
+        raise Exception("Error occurred while run the command: " + cmd_string)
+    os.chdir("../../")
+
+def cmd_subscribe_smart_contract(contract_hash, server_port, grpc_port):
+    os.chdir(os.path.join(os.getcwd(), "rubixgoplatform", get_build_dir()))
+    cmd_string = f"./rubixgoplatform subscribesct -sct {contract_hash} -port {server_port} -grpcPort {grpc_port}"
+    if is_windows_os():
+        cmd_string = f".\\rubixgoplatform subscribesct -sct {contract_hash} -port {server_port} -grpcPort {grpc_port}"
+    output, code = run_command(cmd_string, True)
+    print(output)
+    
+    if code != 0:
+        raise Exception("Error occurred while run the command: " + cmd_string)
+    os.chdir("../../")
+
+
+def cmd_deploy_smart_contract(contract_hash, deployer_did, server_port, grpc_port):
+    os.chdir(os.path.join(os.getcwd(), "rubixgoplatform", get_build_dir()))
+    cmd_string = f"./rubixgoplatform deploysmartcontract -sct {contract_hash} -transType 2 -deployerAddr {deployer_did} -rbtAmount 2 -port {server_port} -grpcPort {grpc_port}"
+    if is_windows_os():
+        cmd_string = f".\\rubixgoplatform deploysmartcontract -sct {contract_hash} -transType 2 -deployerAddr {deployer_did} -rbtAmount 2 -port {server_port} -grpcPort {grpc_port}"
+    output, code = run_command(cmd_string, True)
+    print(output)
+    
+    if code != 0:
+        raise Exception("Error occurred while run the command: " + cmd_string)
+    os.chdir("../../")
     
