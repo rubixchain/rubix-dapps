@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import ConnectionForm from './components/ConnectionForm';
 import { api } from './services/api';
 import { configService } from './services/config';
@@ -46,6 +46,27 @@ function App() {
   const [error, setError] = React.useState<string | null>(null);
   const [config, setConfig] = React.useState<Partial<AppConfig>>({});
   const [configError, setConfigError] = React.useState<string | null>(null);
+  const [recommendedValues, setRecommendedValues] = React.useState<AppConfig | null>(null);
+
+  // Load recommended values from app.node.json
+  useEffect(() => {
+    const loadRecommendedValues = async () => {
+      try {
+        const values = await configService.getConfig();
+        setRecommendedValues(values);
+      } catch (err) {
+        console.error('Failed to load recommended values:', err);
+      }
+    };
+    loadRecommendedValues();
+  }, []);
+
+  // Only fetch NFTs when both node and wallet are connected
+  useEffect(() => {
+    if (config.non_quorum_node_address && config.user_did) {
+      fetchNFTs();
+    }
+  }, [config.non_quorum_node_address, config.user_did]);
 
   const handleNodeConnect = async (url: string) => {
     try {
@@ -62,29 +83,23 @@ function App() {
       setConfigError(null);
       await configService.updateConfig({ user_did: did });
       setConfig(prev => ({ ...prev, user_did: did }));
-      fetchNFTs(did);
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
     }
   };
 
-  const fetchNFTs = async (walletAddress: string) => {
-    if (!config.non_quorum_node_address) {
-      setError('Please connect to a node first');
+  const fetchNFTs = async () => {
+    if (!config.non_quorum_node_address || !config.user_did) {
       return;
     }
     
     try {
       setIsLoading(true);
       setError(null);
-      const response = await api.getNFTs(walletAddress);
-      if (response.success) {
-        setNfts(response.data);
-      } else {
-        setError(response.error || 'Failed to fetch NFTs');
-      }
+      const nftList = await api.listNFTsByDID();
+      setNfts(nftList);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching NFTs');
     } finally {
       setIsLoading(false);
     }
@@ -101,20 +116,20 @@ function App() {
   const isConfigured = Boolean(config.user_did && config.non_quorum_node_address);
 
   const renderNFTContent = () => {
-    if (!config.user_did) {
-      return (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
-          <p className="text-lg text-gray-600">Connect your wallet to load NFTs</p>
-        </div>
-      );
-    }
-
     if (!config.non_quorum_node_address) {
       return (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
           <p className="text-lg text-gray-600">Please connect to a node first</p>
+        </div>
+      );
+    }
+
+    if (!config.user_did) {
+      return (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
+          <p className="text-lg text-gray-600">Please connect your wallet</p>
         </div>
       );
     }
@@ -139,16 +154,16 @@ function App() {
     if (nfts.length === 0) {
       return (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-lg text-gray-600">No NFTs Found</p>
+          <p className="text-lg text-gray-600">No NFTs owned by you</p>
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {nfts.map((nft) => (
           <Suspense 
-            key={nft.id} 
+            key={nft.nft} 
             fallback={
               <div className="animate-pulse bg-gray-200 rounded-lg h-64"></div>
             }
@@ -156,7 +171,7 @@ function App() {
             <NFTCard
               {...nft}
               onTransfer={() => {
-                setSelectedNFT(nft.id);
+                setSelectedNFT(nft.nft);
                 setTransferModalOpen(true);
               }}
             />
@@ -184,17 +199,22 @@ function App() {
                 className="h-12 object-contain mb-4"
                 loading="lazy"
               />
+              {recommendedValues && (
+                <p className="text-sm text-gray-600 text-center mb-4">
+                  Enter the recommended values for Blockchain address: <span className="font-mono bg-gray-100 px-1 rounded">{recommendedValues.non_quorum_node_address}</span> and Wallet DID: <span className="font-mono bg-gray-100 px-1 rounded">{recommendedValues.user_did}</span>
+                </p>
+              )}
               <div className="flex gap-6 items-center w-full">
                 <ConnectionForm 
                   type="node" 
                   onConnect={handleNodeConnect}
-                  value=""
+                  value={config.non_quorum_node_address || ''}
                   isConnected={Boolean(config.non_quorum_node_address)}
                 />
                 <ConnectionForm 
                   type="wallet" 
                   onConnect={handleWalletConnect}
-                  value=""
+                  value={config.user_did || ''}
                   isConnected={Boolean(config.user_did)}
                 />
               </div>

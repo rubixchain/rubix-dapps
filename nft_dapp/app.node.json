@@ -1,7 +1,7 @@
 {
-    "user_did": "bafybmih7sz4hdu3kg6xypvkroyitq7x2mg2w5dwt77kwcfvmunk7jwzwyy",
+    "user_did": "bafybmihgtvhwmvhzru4mnwcnd76cei35toqoofiybuocz3z6euaxavwfwq",
     "non_quorum_node_address": "http://localhost:20005",
-    "nft_contract_hash": "QmehkkRvM5HJKoHSVG9vPt7XjfueNyaSEvDTBiP17w7k5K",
+    "nft_contract_hash": "QmbESPD5eg3omHJLj44KJUDvTB7AAC8jtWCEMvB4zPrNix",
     "nft_contract_path": "D:\\WASM\\rubx_nft_app\\nft_dapp\\backend\\nft_contract\\artifacts\\nft_contract.wasm",
     "dapp_server_api": "/api/run-dapp"
 }

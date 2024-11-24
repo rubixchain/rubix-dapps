@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Wallet, Check } from 'lucide-react';
+import { Globe, Wallet, Check, Edit2 } from 'lucide-react';
 
 interface ConnectionFormProps {
   type: 'node' | 'wallet';
@@ -9,13 +9,24 @@ interface ConnectionFormProps {
 }
 
 export default function ConnectionForm({ type, onConnect, value, isConnected }: ConnectionFormProps) {
-  const [inputValue, setInputValue] = React.useState('');
+  const [inputValue, setInputValue] = React.useState(value);
+  const [isEditing, setIsEditing] = React.useState(!isConnected);
   
+  // Update input value when prop changes
+  React.useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConnected && inputValue.trim()) {
+    if (inputValue.trim()) {
       onConnect(inputValue.trim());
+      setIsEditing(false);
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
   };
 
   return (
@@ -27,30 +38,27 @@ export default function ConnectionForm({ type, onConnect, value, isConnected }: 
           onChange={(e) => setInputValue(e.target.value)}
           placeholder={type === 'node' ? 'Enter Blockchain Node URL' : 'Enter Wallet Address'}
           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
-          disabled={isConnected}
+          disabled={!isEditing}
         />
       </div>
-      <button
-        type="submit"
-        disabled={isConnected}
-        className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors whitespace-nowrap ${
-          isConnected 
-            ? 'bg-green-600 hover:bg-green-700 text-white cursor-default'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
-        }`}
-      >
-        {isConnected ? (
-          <>
-            <Check size={20} />
-            Connected
-          </>
-        ) : (
-          <>
-            {type === 'node' ? <Globe size={20} /> : <Wallet size={20} />}
-            Connect {type === 'node' ? 'Node' : 'Wallet'}
-          </>
-        )}
-      </button>
+      {isConnected && !isEditing ? (
+        <button
+          type="button"
+          onClick={handleEdit}
+          className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors whitespace-nowrap"
+        >
+          <Check size={20} />
+          Connected
+        </button>
+      ) : (
+        <button
+          type="submit"
+          className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors whitespace-nowrap"
+        >
+          {type === 'node' ? <Globe size={20} /> : <Wallet size={20} />}
+          Connect {type === 'node' ? 'Node' : 'Wallet'}
+        </button>
+      )}
     </form>
   );
 }
