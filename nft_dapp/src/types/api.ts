@@ -1,44 +1,40 @@
-// API Response Types
-export interface APIResponse<T> {
-    success: boolean;
-    message: string;
-    data?: T;
-    error?: string;
-  }
-  
-  // NFT Related Types
-  export interface NFT {
+export interface SmartContractRequest {
+  comment: string;
+  executorAddr: string;
+  quorumType: number;
+  smartContractData: string;
+  smartContractToken: string;
+}
+
+export interface SmartContractResponse {
+  status: boolean;
+  message: string;
+  result: {
     id: string;
-    name: string;
-    image: string;
-    owner: string;
-    tokenId: string;
-    metadata: Record<string, any>;
-  }
-  
-  // Transaction Related Types
-  export interface TransferNFTRequest {
-    tokenId: string;
-    recipient: string;
-    value: number;
-  }
-  
-  export interface MintNFTRequest {
-    name: string;
-    description: string;
-    artifactUrl: string;
-    metadata: Record<string, any>;
-  }
-  
-  // Blockchain Related Types
-  export interface BlockchainConnection {
-    nodeUrl: string;
-    chainId: number;
-    connected: boolean;
-  }
-  
-  export interface WalletConnection {
-    address: string;
-    balance: string;
-    connected: boolean;
-  }
+    mode: number;
+    hash: null;
+    only_priv_key: boolean;
+  };
+}
+
+export interface SignatureRequest {
+  id: string;
+  mode: number;
+  password: string;
+}
+
+export interface SignatureResponse {
+  status: boolean;
+  message: string;
+  result: null;
+}
+
+export interface StatusResponse {
+  message: string;
+  status: 0 | 1 | 2; // 0: pending, 1: success, 2: failed
+}
+
+export interface NFTMintInfo {
+  artifactPath: string;
+  metadataPath: string;
+}

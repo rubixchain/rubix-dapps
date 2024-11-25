@@ -97,9 +97,11 @@ function App() {
       setIsLoading(true);
       setError(null);
       const nftList = await api.listNFTsByDID();
-      setNfts(nftList);
+      setNfts(Array.isArray(nftList) ? nftList : []); // Ensure nftList is an array
     } catch (err) {
+      console.error('Error fetching NFTs:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while fetching NFTs');
+      setNfts([]); // Reset NFTs on error
     } finally {
       setIsLoading(false);
     }
@@ -111,6 +113,14 @@ function App() {
       return;
     }
     console.log('Transferring NFT:', { nftId: selectedNFT, recipient, value });
+  };
+
+  const handleMintModalClose = () => {
+    setMintModalOpen(false);
+    // Refresh NFT list after modal closes (in case of successful mint)
+    if (config.non_quorum_node_address && config.user_did) {
+      fetchNFTs();
+    }
   };
 
   const isConfigured = Boolean(config.user_did && config.non_quorum_node_address);
@@ -151,10 +161,10 @@ function App() {
       );
     }
 
-    if (nfts.length === 0) {
+    if (!Array.isArray(nfts) || nfts.length === 0) {
       return (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-lg text-gray-600">No NFTs owned by you</p>
+          <p className="text-lg text-gray-600">No NFTs found</p>
         </div>
       );
     }
@@ -208,13 +218,13 @@ function App() {
                 <ConnectionForm 
                   type="node" 
                   onConnect={handleNodeConnect}
-                  value={config.non_quorum_node_address || ''}
+                  value=""
                   isConnected={Boolean(config.non_quorum_node_address)}
                 />
                 <ConnectionForm 
                   type="wallet" 
                   onConnect={handleWalletConnect}
-                  value={config.user_did || ''}
+                  value=""
                   isConnected={Boolean(config.user_did)}
                 />
               </div>
@@ -227,7 +237,7 @@ function App() {
             <h2 className="text-3xl font-bold text-gray-900">NFT Collections</h2>
             <button
               onClick={() => setMintModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400 disabled:cursor-not-allowed"
               disabled={!isConfigured}
             >
               <Plus size={20} />
@@ -252,7 +262,7 @@ function App() {
           {isMintModalOpen && (
             <MintNFTForm
               isOpen={isMintModalOpen}
-              onClose={() => setMintModalOpen(false)}
+              onClose={handleMintModalClose}
               isConfigured={isConfigured}
             />
           )}
