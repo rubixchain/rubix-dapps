@@ -74,8 +74,16 @@ function App() {
   const handleNodeConnect = async (url: string) => {
     try {
       setConfigError(null);
-      // await configService.updateConfig({ non_quorum_node_address: url });
       setConfig(prev => ({ ...prev, non_quorum_node_address: url }));
+    } catch (err) {
+      setConfigError(err instanceof Error ? err.message : 'Failed to update node configuration');
+    }
+  };
+
+  const handleNodeDisconnect = () => {
+    try {
+      setConfigError(null);
+      setConfig(prev => ({ ...prev, non_quorum_node_address: '' }));
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : 'Failed to update node configuration');
     }
@@ -84,8 +92,16 @@ function App() {
   const handleWalletConnect = async (did: string) => {
     try {
       setConfigError(null);
-      // await configService.updateConfig({ user_did: did });
       setConfig(prev => ({ ...prev, user_did: did }));
+    } catch (err) {
+      setConfigError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
+    }
+  };
+
+  const handleWalletDisconnect = () => {
+    try {
+      setConfigError(null);
+      setConfig(prev => ({ ...prev, user_did: '' }));
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
     }
@@ -257,13 +273,15 @@ function App() {
                 <ConnectionForm 
                   type="node" 
                   onConnect={handleNodeConnect}
-                  value=""
+                  onDisconnect={handleNodeDisconnect}
+                  value={config.non_quorum_node_address || ''}
                   isConnected={Boolean(config.non_quorum_node_address)}
                 />
                 <ConnectionForm 
                   type="wallet" 
                   onConnect={handleWalletConnect}
-                  value=""
+                  onDisconnect={handleWalletDisconnect}
+                  value={config.user_did || ''}
                   isConnected={Boolean(config.user_did)}
                 />
               </div>

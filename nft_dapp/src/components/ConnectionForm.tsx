@@ -4,13 +4,13 @@ import { Globe, Wallet, Check, Edit2 } from 'lucide-react';
 interface ConnectionFormProps {
   type: 'node' | 'wallet';
   onConnect: (value: string) => void;
+  onDisconnect: () => void;
   value: string;
   isConnected: boolean;
 }
 
-export default function ConnectionForm({ type, onConnect, value, isConnected }: ConnectionFormProps) {
+export default function ConnectionForm({ type, onConnect, onDisconnect, value, isConnected }: ConnectionFormProps) {
   const [inputValue, setInputValue] = React.useState(value);
-  const [isEditing, setIsEditing] = React.useState(!isConnected);
   
   // Update input value when prop changes
   React.useEffect(() => {
@@ -21,12 +21,12 @@ export default function ConnectionForm({ type, onConnect, value, isConnected }: 
     e.preventDefault();
     if (inputValue.trim()) {
       onConnect(inputValue.trim());
-      setIsEditing(false);
     }
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  const handleDisconnect = () => {
+    onDisconnect();
+    setInputValue('');
   };
 
   return (
@@ -38,14 +38,14 @@ export default function ConnectionForm({ type, onConnect, value, isConnected }: 
           onChange={(e) => setInputValue(e.target.value)}
           placeholder={type === 'node' ? 'Enter Blockchain Node URL' : 'Enter Wallet Address'}
           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
-          disabled={!isEditing}
+          disabled={isConnected}
         />
       </div>
-      {isConnected && !isEditing ? (
+      {isConnected ? (
         <button
           type="button"
-          onClick={handleEdit}
-          className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors whitespace-nowrap"
+          onClick={handleDisconnect}
+          className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-600 hover:bg-red-600 text-white transition-colors whitespace-nowrap"
         >
           <Check size={20} />
           Connected
