@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Script elements
+rubixgoplatform/
+__pycache__
+
+# Target folder
+**/target/
+
+#db 
+*.db
+
+# NFT Dapps
+nft_dapps/uploads
