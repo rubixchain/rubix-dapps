@@ -18,22 +18,28 @@ func GetSmartContractData(token string, address string) []byte {
 	bodyJSON, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
+		return nil
 	}
 	url := address + "/api/get-smart-contract-token-chain-data"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
 	if err != nil {
 		fmt.Println("Error creating HTTP request:", err)
+		return nil
 	}
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error sending HTTP request:", err)
+		return nil
 	}
+
 	fmt.Println("Response Status:", resp.Status)
 	data2, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading response body: %s\n", err)
+		return nil
 	}
 	// Process the data as needed
 	fmt.Println("Response Body in get smart contract data :", string(data2))
