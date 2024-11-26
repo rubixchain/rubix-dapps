@@ -38,3 +38,24 @@ export interface NFTMintInfo {
   artifactPath: string;
   metadataPath: string;
 }
+
+export interface NFTTransferInfo {
+  nftId: string;      // NFT ID from the target NFT Card
+  owner: string;      // Owner from the target NFT Card
+  recipient: string;  // Recipient Address from modal input
+  value: number;      // NFT Value from modal input (float)
+}
+
+export interface NFTTransferData {
+  transfer_sample_nft: {
+    name: string;
+    nft_info: {
+      comment: string;
+      nft: string;
+      nft_data: string;
+      nft_value: number;
+      owner: string;
+      receiver: string;
+    };
+  };
+}

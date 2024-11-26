@@ -6,9 +6,18 @@ interface TransferModalProps {
   onClose: () => void;
   onTransfer: (recipient: string, value: number) => void;
   isConfigured: boolean;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-export default function TransferModal({ isOpen, onClose, onTransfer, isConfigured }: TransferModalProps) {
+export default function TransferModal({ 
+  isOpen, 
+  onClose, 
+  onTransfer, 
+  isConfigured,
+  isLoading = false,
+  error = null
+}: TransferModalProps) {
   const [recipient, setRecipient] = React.useState('');
   const [value, setValue] = React.useState('');
 
@@ -16,9 +25,8 @@ export default function TransferModal({ isOpen, onClose, onTransfer, isConfigure
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConfigured) return;
+    if (!isConfigured || isLoading) return;
     onTransfer(recipient, parseFloat(value));
-    onClose();
   };
 
   if (!isConfigured) {
@@ -55,11 +63,18 @@ export default function TransferModal({ isOpen, onClose, onTransfer, isConfigure
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          disabled={isLoading}
         >
           <X size={24} />
         </button>
         
         <h2 className="text-2xl font-bold mb-6">Transfer NFT</h2>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 rounded-lg">
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -71,8 +86,9 @@ export default function TransferModal({ isOpen, onClose, onTransfer, isConfigure
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              placeholder="0x..."
+              placeholder="Enter recipient address"
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -89,14 +105,23 @@ export default function TransferModal({ isOpen, onClose, onTransfer, isConfigure
               step="0.01"
               min="0"
               required
+              disabled={isLoading}
             />
           </div>
           
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400 disabled:cursor-not-allowed"
           >
-            Confirm Transfer
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Processing...</span>
+              </>
+            ) : (
+              'Confirm Transfer'
+            )}
           </button>
         </form>
       </div>

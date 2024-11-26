@@ -9,12 +9,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	wasmbridge "github.com/rubixchain/rubix-wasm/go-wasm-bridge"
 )
 
 // Handler function for /api/run-dapp
 func runDAppHandler(c *gin.Context) {
-
 	var req ContractInputRequest
 
 	err := json.NewDecoder(c.Request.Body).Decode(&req)
@@ -178,7 +178,6 @@ func getRequestStatusHandler(c *gin.Context) {
 
 	// Return a response
 	c.JSON(http.StatusOK, resultFinal)
-
 }
 
 func bootupServer() {
@@ -187,6 +186,15 @@ func bootupServer() {
 	config := GetConfig()
 
 	log.SetFlags(log.LstdFlags)
+
+	// Configure CORS middleware
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		ExposeHeaders:    []string{"Content-Length"},
+	}))
+
 	// Define endpoints
 	router.POST(config.DappServerApi, runDAppHandler)
 	router.GET("/request-status", getRequestStatusHandler)

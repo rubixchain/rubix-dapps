@@ -1,14 +1,16 @@
 import React from 'react';
 import { Upload, FileText, AlertCircle, X } from 'lucide-react';
 import { api } from '../services/api';
+import type { AppConfig } from '../types/config';
 
 interface MintNFTFormProps {
   isOpen: boolean;
   onClose: () => void;
   isConfigured: boolean;
+  config: Required<AppConfig>;
 }
 
-export default function MintNFTForm({ isOpen, onClose, isConfigured }: MintNFTFormProps) {
+export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: MintNFTFormProps) {
   const [artifact, setArtifact] = React.useState<File | null>(null);
   const [metadata, setMetadata] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -35,10 +37,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured }: MintNFTFo
 
       // Upload files first
       setStatus('Uploading files to server...');
-      console.log('Uploading files:', {
-        artifact: artifact.name,
-        metadata: metadata.name
-      });
+      console.log('Uploading files...');
       
       const response = await fetch('http://localhost:3000/api/upload', {
         method: 'POST',
@@ -47,13 +46,11 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured }: MintNFTFo
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('File upload error:', errorData);
         throw new Error(errorData.error || 'Failed to upload files');
       }
 
       const uploadResult = await response.json();
       if (!uploadResult.success) {
-        console.error('Upload result error:', uploadResult);
         throw new Error(uploadResult.error || 'Failed to upload files');
       }
 
@@ -62,11 +59,17 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured }: MintNFTFo
 
       // Now mint the NFT with the file paths
       try {
-        console.log('Starting NFT mint with paths:', uploadResult.paths);
-        await api.mintNFT({
-          artifactPath: uploadResult.paths.artifactPath,
-          metadataPath: uploadResult.paths.metadataPath
-        });
+        await api.mintNFT(
+          {
+            artifactPath: uploadResult.paths.artifactPath,
+            metadataPath: uploadResult.paths.metadataPath
+          },
+          {
+            non_quorum_node_address: config.non_quorum_node_address,
+            user_did: config.user_did,
+            nft_contract_hash: config.nft_contract_hash
+          }
+        );
         
         console.log('NFT minted successfully');
         setSuccess(true);
@@ -77,9 +80,6 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured }: MintNFTFo
         }, 2000); // Close after 2 seconds on success
       } catch (mintError) {
         console.error('Minting error:', mintError);
-        if (mintError instanceof Error && mintError.message.includes('node server')) {
-          throw new Error('Node server is not responding. Please ensure the node server is running.');
-        }
         throw mintError;
       }
     } catch (err) {

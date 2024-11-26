@@ -40,13 +40,14 @@ class ErrorBoundary extends React.Component<
 function App() {
   const [isTransferModalOpen, setTransferModalOpen] = React.useState(false);
   const [isMintModalOpen, setMintModalOpen] = React.useState(false);
-  const [selectedNFT, setSelectedNFT] = React.useState<string | null>(null);
+  const [selectedNFT, setSelectedNFT] = React.useState<NFT | null>(null);
   const [nfts, setNfts] = React.useState<NFT[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [config, setConfig] = React.useState<Partial<AppConfig>>({});
   const [configError, setConfigError] = React.useState<string | null>(null);
   const [recommendedValues, setRecommendedValues] = React.useState<AppConfig | null>(null);
+  const [isTransferring, setIsTransferring] = React.useState(false);
 
   // Load recommended values from app.node.json
   useEffect(() => {
@@ -54,6 +55,8 @@ function App() {
       try {
         const values = await configService.getConfig();
         setRecommendedValues(values);
+        // Also set nft_contract_hash in config
+        setConfig(prev => ({ ...prev, nft_contract_hash: values.nft_contract_hash }));
       } catch (err) {
         console.error('Failed to load recommended values:', err);
       }
@@ -71,7 +74,7 @@ function App() {
   const handleNodeConnect = async (url: string) => {
     try {
       setConfigError(null);
-      await configService.updateConfig({ non_quorum_node_address: url });
+      // await configService.updateConfig({ non_quorum_node_address: url });
       setConfig(prev => ({ ...prev, non_quorum_node_address: url }));
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : 'Failed to update node configuration');
@@ -81,7 +84,7 @@ function App() {
   const handleWalletConnect = async (did: string) => {
     try {
       setConfigError(null);
-      await configService.updateConfig({ user_did: did });
+      // await configService.updateConfig({ user_did: did });
       setConfig(prev => ({ ...prev, user_did: did }));
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
@@ -96,7 +99,10 @@ function App() {
     try {
       setIsLoading(true);
       setError(null);
-      const nftList = await api.listNFTsByDID();
+      const nftList = await api.listNFTsByDID({
+        non_quorum_node_address: config.non_quorum_node_address,
+        user_did: config.user_did
+      });
       setNfts(Array.isArray(nftList) ? nftList : []); // Ensure nftList is an array
     } catch (err) {
       console.error('Error fetching NFTs:', err);
@@ -107,12 +113,45 @@ function App() {
     }
   };
 
-  const handleTransfer = (recipient: string, value: number) => {
-    if (!config.user_did || !config.non_quorum_node_address) {
-      setError('Please connect both node and wallet before performing operations');
+  const handleTransfer = async (recipient: string, value: number) => {
+    if (!selectedNFT) {
+      setError('No NFT selected for transfer');
       return;
     }
-    console.log('Transferring NFT:', { nftId: selectedNFT, recipient, value });
+
+    if (!config.non_quorum_node_address || !config.user_did || !config.nft_contract_hash) {
+      console.log('Current config:', config);
+      setError('Missing configuration. Please ensure node and wallet are connected.');
+      return;
+    }
+
+    try {
+      setIsTransferring(true);
+      setError(null);
+
+      await api.transferNFT(
+        {
+          nftId: selectedNFT.nft,
+          owner: selectedNFT.owner_did,
+          recipient,
+          value
+        },
+        {
+          non_quorum_node_address: config.non_quorum_node_address,
+          user_did: config.user_did,
+          nft_contract_hash: config.nft_contract_hash
+        }
+      );
+
+      // Refresh NFT list after successful transfer
+      await fetchNFTs();
+      setTransferModalOpen(false);
+    } catch (err) {
+      console.error('Error transferring NFT:', err);
+      setError(err instanceof Error ? err.message : 'Failed to transfer NFT');
+    } finally {
+      setIsTransferring(false);
+    }
   };
 
   const handleMintModalClose = () => {
@@ -123,7 +162,7 @@ function App() {
     }
   };
 
-  const isConfigured = Boolean(config.user_did && config.non_quorum_node_address);
+  const isConfigured = Boolean(config.user_did && config.non_quorum_node_address && config.nft_contract_hash);
 
   const renderNFTContent = () => {
     if (!config.non_quorum_node_address) {
@@ -181,7 +220,7 @@ function App() {
             <NFTCard
               {...nft}
               onTransfer={() => {
-                setSelectedNFT(nft.nft);
+                setSelectedNFT(nft);
                 setTransferModalOpen(true);
               }}
             />
@@ -251,9 +290,15 @@ function App() {
           {isTransferModalOpen && (
             <TransferModal
               isOpen={isTransferModalOpen}
-              onClose={() => setTransferModalOpen(false)}
+              onClose={() => {
+                setTransferModalOpen(false);
+                setSelectedNFT(null);
+                setError(null);
+              }}
               onTransfer={handleTransfer}
               isConfigured={isConfigured}
+              isLoading={isTransferring}
+              error={error}
             />
           )}
         </Suspense>
@@ -264,6 +309,7 @@ function App() {
               isOpen={isMintModalOpen}
               onClose={handleMintModalClose}
               isConfigured={isConfigured}
+              config={config as Required<AppConfig>}
             />
           )}
         </Suspense>
