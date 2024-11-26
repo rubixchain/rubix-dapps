@@ -26,7 +26,14 @@ func runDAppHandler(c *gin.Context) {
 	}
 	config := GetConfig()
 	smartContractHash := req.SmartContractHash
+	fmt.Println("Received Smart Contract hash: ", req.SmartContractHash)
+
 	smartContractTokenData := GetSmartContractData(smartContractHash, config.NodeAddress)
+	if smartContractTokenData == nil {
+		fmt.Println("Unable to fetch latest smart contract data")
+		return
+	}
+
 	fmt.Println("Smart Contract Token Data :", string(smartContractTokenData))
 
 	var dataReply SmartContractDataReply
@@ -178,6 +185,8 @@ func bootupServer() {
 	// Initialize a Gin router
 	router := gin.Default()
 	config := GetConfig()
+
+	log.SetFlags(log.LstdFlags)
 	// Define endpoints
 	router.POST(config.DappServerApi, runDAppHandler)
 	router.GET("/request-status", getRequestStatusHandler)

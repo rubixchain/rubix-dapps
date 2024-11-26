@@ -67,6 +67,45 @@ export const api = {
     }
   },
 
+  async pollMintingStatus(contractHash: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const checkStatus = async () => {
+        try {
+          console.log('Checking minting status...');
+          const response = await axios.get<StatusResponse>(STATUS_CHECK_URL, {
+            params: { req_id: `${contractHash}-mint` }
+          });
+
+          console.log('Status response:', response.data);
+
+          switch (response.data.status) {
+            case 0: // Pending
+              console.log('Minting pending, checking again in 20 seconds...');
+              setTimeout(checkStatus, STATUS_CHECK_INTERVAL);
+              break;
+            case 1: // Success
+              console.log('Minting completed successfully');
+              resolve();
+              break;
+            case 2: // Failed
+              console.error('Minting failed');
+              reject(new Error('NFT minting failed'));
+              break;
+            default:
+              console.error('Unknown status:', response.data.status);
+              reject(new Error('Unknown minting status received'));
+          }
+        } catch (error) {
+          console.error('Error checking status:', error);
+          reject(error);
+        }
+      };
+
+      // Start polling
+      checkStatus();
+    });
+  },
+
   async mintNFT(nftInfo: NFTMintInfo): Promise<void> {
     const config = await getConfig();
     if (!config.non_quorum_node_address || !config.user_did || !config.nft_contract_hash) {
@@ -97,11 +136,11 @@ export const api = {
       console.log('Execute Request:', executeRequest);
 
       const executeResponse = await axios.post<SmartContractResponse>(
-        `${config.non_quorum_node_address}/api/execute-smart-contract`,
+        `/api/execute-smart-contract`,
         executeRequest,
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           }
         }
       );
@@ -124,7 +163,7 @@ export const api = {
       };
 
       const signatureResponse = await axios.post<SignatureResponse>(
-        `${config.non_quorum_node_address}/api/signature-response`,
+        `/api/signature-response`,
         signatureRequest,
         {
           headers: {
@@ -139,6 +178,9 @@ export const api = {
         throw new Error(signatureResponse.data.message || 'Signature submission failed');
       }
 
+      // Step 3: Poll for minting status
+      console.log('Starting to poll minting status...');
+      await this.pollMintingStatus(config.nft_contract_hash);
       console.log('NFT minting process completed');
     } catch (error) {
       console.error('Error in mintNFT:', error);

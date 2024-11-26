@@ -9,7 +9,9 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "http://localhost:20005"
+      "/api": {
+        target: "http://localhost:20005"
+      }
     }
   }
 });
