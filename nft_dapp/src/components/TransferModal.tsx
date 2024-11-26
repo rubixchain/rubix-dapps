@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface TransferModalProps {
   isConfigured: boolean;
   isLoading?: boolean;
   error?: string | null;
+  success?: boolean;
 }
 
 export default function TransferModal({ 
@@ -16,10 +17,21 @@ export default function TransferModal({
   onTransfer, 
   isConfigured,
   isLoading = false,
-  error = null
+  error = null,
+  success = false
 }: TransferModalProps) {
   const [recipient, setRecipient] = React.useState('');
   const [value, setValue] = React.useState('');
+
+  React.useEffect(() => {
+    if (success) {
+      // Auto close after showing success message
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, onClose]);
 
   if (!isOpen) return null;
 
@@ -51,6 +63,21 @@ export default function TransferModal({
             >
               Close
             </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+          <div className="flex flex-col items-center gap-4 py-6">
+            <CheckCircle size={48} className="text-green-500" />
+            <p className="text-center text-gray-600">
+              NFT Transfer Successful!
+            </p>
           </div>
         </div>
       </div>

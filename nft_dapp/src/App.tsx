@@ -4,7 +4,7 @@ import { api } from './services/api';
 import { configService } from './services/config';
 import type { NFT } from './types/nft';
 import type { AppConfig } from './types/config';
-import { AlertCircle, Plus } from 'lucide-react';
+import { AlertCircle, Plus, RefreshCw } from 'lucide-react';
 
 // Lazy load components that aren't immediately needed
 const NFTCard = lazy(() => import('./components/NFTCard'));
@@ -48,6 +48,8 @@ function App() {
   const [configError, setConfigError] = React.useState<string | null>(null);
   const [recommendedValues, setRecommendedValues] = React.useState<AppConfig | null>(null);
   const [isTransferring, setIsTransferring] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [transferSuccess, setTransferSuccess] = React.useState(false);
 
   // Load recommended values from app.node.json
   useEffect(() => {
@@ -126,7 +128,13 @@ function App() {
       setNfts([]); // Reset NFTs on error
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchNFTs();
   };
 
   const handleTransfer = async (recipient: string, value: number) => {
@@ -144,6 +152,7 @@ function App() {
     try {
       setIsTransferring(true);
       setError(null);
+      setTransferSuccess(false);
 
       await api.transferNFT(
         {
@@ -159,9 +168,9 @@ function App() {
         }
       );
 
+      setTransferSuccess(true);
       // Refresh NFT list after successful transfer
       await fetchNFTs();
-      setTransferModalOpen(false);
     } catch (err) {
       console.error('Error transferring NFT:', err);
       setError(err instanceof Error ? err.message : 'Failed to transfer NFT');
@@ -170,9 +179,20 @@ function App() {
     }
   };
 
+  const handleTransferModalClose = () => {
+    setTransferModalOpen(false);
+    setSelectedNFT(null);
+    setError(null);
+    setTransferSuccess(false);
+    // Refresh NFT list when modal closes
+    if (config.non_quorum_node_address && config.user_did) {
+      fetchNFTs();
+    }
+  };
+
   const handleMintModalClose = () => {
     setMintModalOpen(false);
-    // Refresh NFT list after modal closes (in case of successful mint)
+    // Refresh NFT list after modal closes
     if (config.non_quorum_node_address && config.user_did) {
       fetchNFTs();
     }
@@ -291,7 +311,20 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">NFT Collections</h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-bold text-gray-900">NFT Collections</h2>
+              <button
+                onClick={handleRefresh}
+                disabled={!isConfigured || isLoading}
+                className="p-2 text-gray-600 hover:text-purple-600 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
+                title="Refresh NFT list"
+              >
+                <RefreshCw 
+                  size={20} 
+                  className={`${isRefreshing ? 'animate-spin' : ''}`}
+                />
+              </button>
+            </div>
             <button
               onClick={() => setMintModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400 disabled:cursor-not-allowed"
@@ -308,15 +341,12 @@ function App() {
           {isTransferModalOpen && (
             <TransferModal
               isOpen={isTransferModalOpen}
-              onClose={() => {
-                setTransferModalOpen(false);
-                setSelectedNFT(null);
-                setError(null);
-              }}
+              onClose={handleTransferModalClose}
               onTransfer={handleTransfer}
               isConfigured={isConfigured}
               isLoading={isTransferring}
               error={error}
+              success={transferSuccess}
             />
           )}
         </Suspense>
