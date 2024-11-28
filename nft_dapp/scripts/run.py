@@ -8,9 +8,11 @@ from app.app_config import update_config, get_config
 import os
 import requests
 
-WASM_FILE_PATH = "D:\\WASM\\rubx_nft_app\\nft_dapp\\backend\\nft_contract\\artifacts\\nft_contract.wasm"
-RAW_CODE_PATH = "D:\\WASM\\rubx_nft_app\\nft_dapp\\backend\\nft_contract\\src\\lib.rs"
-STATE_FILE_JSON = "D:\\WASM\\rubx_nft_app\\nft_dapp\\scripts\\state.json"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+WASM_FILE_PATH = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "nft_contract", "artifacts", "nft_contract.wasm")))
+RAW_CODE_PATH = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "nft_contract", "src", "lib.rs")))
+STATE_FILE_JSON = os.path.abspath(os.path.join(script_dir, "state.json"))
 
 def register_callback_url(rubix_node_url, contract_hash, callback_url_endpoint):
     callback_url = f"http://localhost:8080{callback_url_endpoint}"

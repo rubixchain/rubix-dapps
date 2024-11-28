@@ -286,9 +286,12 @@ function App() {
               />
               {recommendedValues && (
                 <p className="text-sm text-gray-600 text-center mb-4">
-                  Enter the recommended values for Blockchain address: <span className="font-mono bg-gray-100 px-1 rounded">{recommendedValues.non_quorum_node_address}</span> and Wallet DID: <span className="font-mono bg-gray-100 px-1 rounded">{recommendedValues.user_did}</span>
+                  Enter the recommended values for Blockchain address: <span className="font-mono bg-gray-100 px-1 rounded">{recommendedValues.non_quorum_node_address}</span> and Wallet DID: <span className="font-mono bg-gray-100 px-1 rounded">{recommendedValues.user_did}</span> (created by scripts)
                 </p>
               )}
+              <p className="text-sm text-gray-600 text-center mb-4">
+                  To create a new DID for testing NFT Transfer, run the command <span className="font-mono bg-gray-100 px-1 rounded">python create_did.py</span> present inside  <span className="font-mono bg-gray-100 px-1 rounded">scripts</span> directory
+              </p>
               <div className="flex gap-6 items-center w-full">
                 <ConnectionForm 
                   type="node" 
