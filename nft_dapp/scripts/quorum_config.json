@@ -2,56 +2,56 @@
     "node0": {
         "dids": {
             "did_quorum": {
-                "did": "bafybmihr6scf237srk3n7h4iornyysrizfsfcu6kitploozbjq5vsyu6qa",
+                "did": "bafybmihvz3znulejqbzoeafhzqfffhemsrl4wpok77hne6ufvpldgcsqgi",
                 "did_type": 4
             }
         },
         "server": 20000,
         "grpcPort": 10500,
-        "peerId": "12D3KooWLs14L34VXkXqfQDrww5NMMAWVe2QXin1Ww7jigdF5pxY"
+        "peerId": "12D3KooWE2M5isdBpejqYWPxEbD3zJP2m72BgQeLKCeMkPknM7Lm"
     },
     "node1": {
         "dids": {
             "did_quorum": {
-                "did": "bafybmifqt2nsmwioeext4zm7dpk6otsnbal3u2gzev55yvjsfst2fvdbdm",
+                "did": "bafybmihp5mkpkzeu475u5awdj6ngxuktembq3wne4vh2hoj3ybpa3jtd6m",
                 "did_type": 4
             }
         },
         "server": 20001,
         "grpcPort": 10501,
-        "peerId": "12D3KooWA1YZFEkGzEXCCbVhhPXHGGEAASyBfpTSP9nJzjihok75"
+        "peerId": "12D3KooWKoKCnU9WEP5ebTHK5RsPfXKzEkknoLPM89ZCeGfALdL5"
     },
     "node2": {
         "dids": {
             "did_quorum": {
-                "did": "bafybmihrykjjbkhy64shgisqqlc5wxvlh34jysqqysawzammkb7sjta3ge",
+                "did": "bafybmidecphwe6uphhq6dkqxgcmrgius3sjiy4vj7ihkc7d7ztb67xbfve",
                 "did_type": 4
             }
         },
         "server": 20002,
         "grpcPort": 10502,
-        "peerId": "12D3KooWGjQETirtnTQfhSQRFuWAhpaM9F6y4yuq5Wxap2sQ8PtD"
+        "peerId": "12D3KooWPG3cFBRXqBmRkewVmeR1a1g1m9YhRrMntdQe2Pos52CS"
     },
     "node3": {
         "dids": {
             "did_quorum": {
-                "did": "bafybmiasemp7zrb6kahdgbgcaikij6bcueeunacz23zvkcm2nus5djx5u4",
+                "did": "bafybmifdkl5nytebhuebehpwukvv2z4kjnih2gt6h2rfzq6uc3kt23f2hi",
                 "did_type": 4
             }
         },
         "server": 20003,
         "grpcPort": 10503,
-        "peerId": "12D3KooWMix6sEep7M2dNPXLbaL9EMHYfmVupTRR1me7wz2RQSXL"
+        "peerId": "12D3KooWG2kDhtNiEQPEDsoaNUqCGMh9ygQbLbKhifcc1WfmmEKy"
     },
     "node4": {
         "dids": {
             "did_quorum": {
-                "did": "bafybmiaiqyrirmld3kzthkvm5yw643krcnynikgcm4tirgoedqhumdr4xy",
+                "did": "bafybmibw2whi2lz3yfkd5qv4gt5g2ibdo6phvlzog7yl6xj4g3ohn4hdti",
                 "did_type": 4
             }
         },
         "server": 20004,
         "grpcPort": 10504,
-        "peerId": "12D3KooWJFbYot3wAaaw5zhseKf34BzT9cqToMxBxfcARWYPNATr"
+        "peerId": "12D3KooWKXppP2jjSqmwUYy2co4GYvne8oqPWVEJwnZWr6PJ14S2"
     }
 }

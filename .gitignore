@@ -34,4 +34,4 @@ __pycache__
 *.db
 
 # NFT Dapps
-nft_dapps/uploads
+nft_dapp/uploads
