@@ -1,0 +1,70 @@
+services:
+  # Frontend Vite server
+  vite:
+    image: node:18
+    container_name: rubix-super-dapp-frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./:/app:cached
+      - /app/node_modules
+    environment:
+      - DOCKER=true
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    stdin_open: true
+    tty: true
+
+  # File server
+  file-server:
+    image: node:18
+    container_name: rubix-super-dapp-file-server
+    working_dir: /app
+    command: sh -c "npm install && node server.js"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app:cached
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+
+  # Rubix Go Platform
+  rubix-localnet:
+    image: rubix-localnet-image
+    container_name: rubix-localnet
+    build: .
+    expose:
+      - 20005
+    volumes:
+      - ./app.node.json:/app/app.node.json
+      - ./backend:/app/backend
+      - ./scripts:/app/scripts
+
+  # Dapp Server
+  dapp-server:
+    image: golang:1.22
+    container_name: rubix-dapp-server
+    working_dir: /app
+    command: sh -c "cd backend/dapp_server && go mod download && go run ."
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+    environment:
+      - HOST=0.0.0.0
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: rubix-nginx
+    ports:
+      - "20005:20005"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - rubix-localnet

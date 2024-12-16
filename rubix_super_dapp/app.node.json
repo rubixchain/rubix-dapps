@@ -1,0 +1,16 @@
+{
+    "user_did": "bafybmibmk6ohn5ujtlopo3sh2deoijbttogrsct5j3a4wiuixxz5vexmba",
+    "non_quorum_node_address": "http://localhost:20006",
+    "contracts_info": {
+        "ft": {
+            "contract_hash": "Qmcvhsb6msZVTxMJ49UPH7zSH4o9bG8yNeB7SUawYVLqnB",
+            "contract_path": "D:\\WASM\\rubix-dapps\\rubix_super_dapp\\backend\\ft_contract\\artifacts\\ft_contract.wasm",
+            "callback_url": "/callback/ft"
+        },
+        "nft": {
+            "contract_hash": "QmZEu7hGgEoxbaAjUWyNT4BR58Z1RENuiczQc9DAUbCVdZ",
+            "contract_path": "D:\\WASM\\rubix-dapps\\rubix_super_dapp\\backend\\nft_contract\\artifacts\\nft_contract.wasm",
+            "callback_url": "/callback/nft"
+        }
+    }
+}
