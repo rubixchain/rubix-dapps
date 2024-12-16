@@ -64,79 +64,8 @@ async function readConfig() {
   return configCache;
 }
 
-// Mint NFT endpoint
-app.post('/api/mint-nft', async (req, res) => {
-  try {
-    const { nodeUrl, contractHash, userDid, mintData } = req.body;
-
-    console.log('=== Mint NFT Request Details ===');
-    console.log('Node URL:', nodeUrl);
-    console.log('Contract Hash:', contractHash);
-    console.log('User DID:', userDid);
-    console.log('Mint Data:', JSON.stringify(mintData, null, 2));
-
-    // Step 1: Execute smart contract
-    const executeRequest = {
-      comment: `Mint NFT Request - ${Date.now()}`,
-      executorAddr: userDid,
-      quorumType: 2,
-      smartContractData: JSON.stringify(mintData),
-      smartContractToken: contractHash
-    };
-
-    console.log('Executing smart contract:', executeRequest);
-
-    const executeResponse = await axios.post(
-      `${nodeUrl}/api/execute-smart-contract`,
-      executeRequest,
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-
-    console.log('Smart contract response:', executeResponse.data);
-
-    if (!executeResponse.data.status) {
-      throw new Error(executeResponse.data.message || 'Smart contract execution failed');
-    }
-
-    const requestId = executeResponse.data.result.id;
-
-    // Step 2: Submit signature
-    console.log('Submitting signature for request:', requestId);
-
-    const signatureRequest = {
-      id: requestId,
-      mode: 0,
-      password: "mypassword"
-    };
-
-    const signatureResponse = await axios.post(
-      `${nodeUrl}/api/signature-response`,
-      signatureRequest,
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-
-    console.log('Signature response:', signatureResponse.data);
-
-    if (!signatureResponse.data.status) {
-      throw new Error(signatureResponse.data.message || 'Signature submission failed');
-    }
-
-    res.json({ status: true, message: 'NFT minting initiated successfully' });
-  } catch (error) {
-    console.error('Error in mint-nft endpoint:', error);
-    res.status(500).json({
-      status: false,
-      message: error.message || 'Failed to mint NFT'
-    });
-  }
-});
-
 // File upload endpoint with error handling
-app.post('/api/upload', upload.fields([
+app.post('/file_server/upload', upload.fields([
   { name: 'artifact', maxCount: 1 },
   { name: 'metadata', maxCount: 1 }
 ]), async (req, res) => {
@@ -176,7 +105,7 @@ app.post('/api/upload', upload.fields([
 });
 
 // API endpoint to write to app.node.json
-app.post('/api/writeConfig', async (req, res) => {
+app.post('/file_server/writeConfig', async (req, res) => {
   try {
     const updates = req.body;
     
@@ -230,7 +159,7 @@ app.post('/api/writeConfig', async (req, res) => {
 });
 
 // API endpoint to read the current config
-app.get('/api/config', async (req, res) => {
+app.get('/file_server/config', async (req, res) => {
   try {
     const config = await readConfig();
     res.json(config);

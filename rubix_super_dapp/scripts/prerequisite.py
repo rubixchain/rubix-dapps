@@ -8,17 +8,26 @@ import binascii
 
 def generate_ipfs_swarm_key(build_dir):
     try:
+        # Create build directory if it doesn't exist
+        os.makedirs(build_dir, exist_ok=True)
+        
         key = os.urandom(32)
+        output = "/key/swarm/psk/1.0.0/\n/base16/\n" + binascii.hexlify(key).decode()
+        filename = os.path.join(build_dir, "testswarm.key")
+        
+        # Check if file already exists
+        if os.path.exists(filename):
+            print(f"Swarm key file already exists at {filename}")
+            return
+            
+        # Create the file and write content
+        with open(filename, "w") as file:
+            file.write(output)
+        print(f"Successfully created swarm key at {filename}")
+            
     except Exception as e:
-        print("While trying to read random source:", e)
-        return
-
-    output = "/key/swarm/psk/1.0.0/\n/base16/\n" + binascii.hexlify(key).decode()
-
-    filename = os.path.join(build_dir, "testswarm.key")
-    
-    with open(filename, "w") as file:
-        file.write(output)
+        print(f"Error in generate_ipfs_swarm_key: {str(e)}")
+        raise
 
 def get_os_info():
     os_name = platform.system()
@@ -137,4 +146,3 @@ def clone_and_build(repo_url, branch_name, os_name):
         print(f"Command '{' '.join(e.cmd)}' failed with return code {e.returncode}.")
     except Exception as e:
         print(f"An error occurred: {e}")
-

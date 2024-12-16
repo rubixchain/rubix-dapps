@@ -1,7 +1,7 @@
 import React from 'react';
 import { Upload, FileText, AlertCircle, X } from 'lucide-react';
 import { api } from '../services/api';
-import type { AppConfig } from '../types/config';
+import type { AppConfig } from '../../../shared/types/config';
 
 interface MintNFTFormProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
       setStatus('Uploading files to server...');
       console.log('Uploading files...');
       
-      const response = await fetch('http://localhost:3000/api/upload', {
+      const response = await fetch('http://localhost:3000/file_server/upload', {
         method: 'POST',
         body: formData,
       });
@@ -67,7 +67,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
           {
             non_quorum_node_address: config.non_quorum_node_address,
             user_did: config.user_did,
-            nft_contract_hash: config.nft_contract_hash
+            contracts_info: config.contracts_info
           }
         );
         
@@ -109,7 +109,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
             </p>
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+              className="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
             >
               Close
             </button>
@@ -159,7 +159,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
               NFT Artifact
             </label>
             <p className="text-sm text-gray-500 mb-2">
-              Upload your NFT artwork (supported formats: PNG, JPG, GIF, SVG)
+              Upload your NFT artifact file
             </p>
             <div className="relative">
               <input
@@ -167,7 +167,6 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
                 onChange={(e) => setArtifact(e.target.files?.[0] || null)}
                 className="hidden"
                 id="artifact-upload"
-                accept="image/*"
                 required
                 disabled={isLoading}
               />
@@ -176,7 +175,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
                 className={`flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
                   isLoading
                     ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                    : 'border-gray-300 hover:border-purple-500'
+                    : 'border-gray-300 hover:border-green-500'
                 }`}
               >
                 <Upload size={20} className="text-gray-500" />
@@ -209,7 +208,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
                 className={`flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
                   isLoading
                     ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                    : 'border-gray-300 hover:border-purple-500'
+                    : 'border-gray-300 hover:border-green-500'
                 }`}
               >
                 <FileText size={20} className="text-gray-500" />
@@ -225,8 +224,8 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
             disabled={isLoading || !artifact || !metadata}
             className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-colors ${
               isLoading || !artifact || !metadata
-                ? 'bg-purple-400 cursor-not-allowed'
-                : 'bg-purple-600 hover:bg-purple-700'
+                ? 'bg-green-400 cursor-not-allowed'
+                : 'bg-green-700 hover:bg-green-800'
             } text-white`}
           >
             {isLoading ? (

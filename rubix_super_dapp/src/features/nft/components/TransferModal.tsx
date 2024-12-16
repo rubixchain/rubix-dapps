@@ -59,7 +59,7 @@ export default function TransferModal({
             </p>
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+              className="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
             >
               Close
             </button>
@@ -112,7 +112,7 @@ export default function TransferModal({
               type="text"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               placeholder="Enter recipient address"
               required
               disabled={isLoading}
@@ -127,9 +127,9 @@ export default function TransferModal({
               type="number"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              placeholder="0.00"
-              step="0.01"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              placeholder="Enter amount in RBT"
+              step="0.001"
               min="0"
               required
               disabled={isLoading}
@@ -139,7 +139,7 @@ export default function TransferModal({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>

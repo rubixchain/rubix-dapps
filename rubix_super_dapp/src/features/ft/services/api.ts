@@ -1,63 +1,76 @@
 import axios from 'axios';
-import type { NFTResponse, NFTListResponse, NFT } from '../types/nft.ts';
-import type { AppConfig } from '../../../shared/types/config.ts';
-import type {
-  SmartContractRequest,
-  SmartContractResponse,
-  SignatureRequest,
-  SignatureResponse,
-  StatusResponse,
-  NFTMintInfo,
-  NFTTransferInfo,
-  NFTTransferData
-} from '../types/api.ts';
+import { configService } from '../../../shared/services/config';
 
-const CONFIG_API_URL = 'http://localhost:3000/api';
 const STATUS_CHECK_URL = 'http://localhost:8080/request-status';
-const STATUS_CHECK_INTERVAL = 6000; // Changed to 6 seconds to match FT
+const STATUS_CHECK_INTERVAL = 6000; // 6 seconds
 
-// Create axios instance with default config
-const apiClient = axios.create({
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
+export interface FTInfo {
+  creator_did: string;
+  ft_count: number;
+  ft_name: string;
+}
+
+interface FTResponse {
+  ft_info: FTInfo[];
+  message: string;
+  result: string;
+  status: boolean;
+}
+
+export interface CreateFTParams {
+  tokenName: string;
+  tokenSupply: string;
+  rbtLocked: string;
+  creatorDid: string;
+}
+
+export interface TransferFTParams {
+  tokenName: string;
+  amount: string;
+  creatorDid: string;
+  receiverDid: string;
+}
+
+interface SmartContractResponse {
+  status: boolean;
+  message: string;
+  result: {
+    id: string;
+  };
+}
+
+interface SignatureResponse {
+  status: boolean;
+  message: string;
+}
+
+interface StatusResponse {
+  status: number; // 0: Pending, 1: Success, 2: Failed
+  message: string;
+}
 
 export const api = {
-  async getNFTs(walletAddress: string) {
-    try {
-      const response = await apiClient.get<NFTResponse>(`${CONFIG_API_URL}/nfts`, {
-        params: { wallet: walletAddress }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching NFTs:', error);
-      throw error;
+  async getFTsByDID(): Promise<FTInfo[]> {
+    const config = await configService.getConfig();
+    const { non_quorum_node_address, user_did } = config;
+
+    if (!non_quorum_node_address || !user_did) {
+      throw new Error('Node address and user DID are required');
     }
+
+    const response = await fetch(
+      `${non_quorum_node_address}/api/get-ft-info-by-did?did=${user_did}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch FT information');
+    }
+
+    const data: FTResponse = await response.json();
+    return data.ft_info;
   },
 
-  async listNFTsByDID(config: Pick<AppConfig, 'non_quorum_node_address' | 'user_did'>): Promise<NFT[]> {
-    try {
-      const response = await axios.get<NFTListResponse>(
-        `${config.non_quorum_node_address}/api/list-nfts`
-      );
-      
-      if (!response.data || !response.data.nfts) {
-        return [];
-      }
-      
-      return response.data.nfts.filter(nft => nft.owner_did === config.user_did);
-    } catch (error) {
-      console.error('Error listing NFTs:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        return [];
-      }
-      throw error;
-    }
-  },
-
-  async pollStatus(contractHash: string, operation: 'mint' | 'transfer', signal?: AbortSignal): Promise<void> {
+  async pollStatus(contractHash: string, operation: 'mint' | 'transfer' = 'mint', signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
       const checkStatus = async () => {
         try {
@@ -66,9 +79,9 @@ export const api = {
             return;
           }
 
-          console.log(`Checking NFT ${operation} status...`);
+          console.log(`Checking FT ${operation} status...`);
           const response = await axios.get<StatusResponse>(STATUS_CHECK_URL, {
-            params: { req_id: `nft-${contractHash}-${operation}` },
+            params: { req_id: `ft-${contractHash}-${operation}` },
             signal
           });
 
@@ -76,16 +89,16 @@ export const api = {
 
           switch (response.data.status) {
             case 0: // Pending
-              console.log(`NFT ${operation} pending, checking again in 6 seconds...`);
+              console.log(`FT ${operation} pending, checking again in 6 seconds...`);
               setTimeout(checkStatus, STATUS_CHECK_INTERVAL);
               break;
             case 1: // Success
-              console.log(`NFT ${operation} completed successfully`);
+              console.log(`FT ${operation} completed successfully`);
               resolve();
               break;
             case 2: // Failed
-              console.error(`NFT ${operation} failed`);
-              reject(new Error(`NFT ${operation} failed`));
+              console.error(`FT ${operation} failed`);
+              reject(new Error(`FT ${operation} failed`));
               break;
             default:
               console.error('Unknown status:', response.data.status);
@@ -106,34 +119,34 @@ export const api = {
     });
   },
 
-  async mintNFT(
-    nftInfo: NFTMintInfo,
-    config: Pick<AppConfig, 'non_quorum_node_address' | 'user_did' | 'contracts_info'>,
-    signal?: AbortSignal
-  ): Promise<void> {
-    if (!config.non_quorum_node_address || !config.user_did || !config.contracts_info?.nft?.contract_hash) {
-      throw new Error('Missing configuration for NFT minting');
+  async createFT(params: CreateFTParams, signal?: AbortSignal): Promise<void> {
+    const config = await configService.getConfig();
+    const { non_quorum_node_address, user_did, contracts_info } = config;
+
+    if (!non_quorum_node_address || !user_did) {
+      throw new Error('Node address and user DID are required');
     }
 
     try {
       // Step 1: Execute smart contract
-      const mintData = {
-        mint_sample_nft: {
+      const smartContractData = {
+        mint_sample_ft: {
           name: "rubix1",
-          nft_info: {
-            did: config.user_did,
-            metadata: nftInfo.metadataPath,
-            artifact: nftInfo.artifactPath
+          ft_info: {
+            did: params.creatorDid,
+            ft_count: parseInt(params.tokenSupply),
+            ft_name: params.tokenName,
+            token_count: parseInt(params.rbtLocked)
           }
         }
       };
 
-      const executeRequest: SmartContractRequest = {
-        comment: `Mint NFT Request - ${Date.now()}`,
-        executorAddr: config.user_did,
+      const executeRequest = {
+        comment: `Create FT ${params.tokenName}`,
+        executorAddr: user_did,
         quorumType: 2,
-        smartContractData: JSON.stringify(mintData),
-        smartContractToken: config.contracts_info.nft.contract_hash
+        smartContractData: JSON.stringify(smartContractData),
+        smartContractToken: contracts_info.ft.contract_hash
       };
 
       console.log('Execute Request:', executeRequest);
@@ -160,7 +173,7 @@ export const api = {
       // Step 2: Submit signature using the request ID
       console.log('Submitting signature for request:', requestId);
 
-      const signatureRequest: SignatureRequest = {
+      const signatureRequest = {
         id: requestId,
         mode: 0,
         password: "mypassword"
@@ -183,54 +196,53 @@ export const api = {
         throw new Error(signatureResponse.data.message || 'Signature submission failed');
       }
 
-      // Step 3: Poll for minting status
-      console.log('Starting to poll minting status...');
-      await this.pollStatus(config.contracts_info.nft.contract_hash, 'mint', signal);
-      console.log('NFT minting process completed');
+      // Step 3: Poll for creation status
+      console.log('Starting to poll creation status...');
+      await this.pollStatus(contracts_info.ft.contract_hash, 'mint', signal);
+      console.log('FT creation process completed');
     } catch (error) {
       if (axios.isCancel(error)) {
         throw new Error('Operation cancelled');
       }
-      console.error('Error in mintNFT:', error);
+      console.error('Error in createFT:', error);
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;
-        throw new Error(`Failed to mint NFT: ${errorMessage}`);
+        throw new Error(`Failed to create FT: ${errorMessage}`);
       }
       throw error;
     }
   },
 
-  async transferNFT(
-    transferInfo: NFTTransferInfo,
-    config: Pick<AppConfig, 'non_quorum_node_address' | 'user_did' | 'contracts_info'>,
-    signal?: AbortSignal
-  ): Promise<void> {
-    if (!config.non_quorum_node_address || !config.user_did || !config.contracts_info?.nft?.contract_hash) {
-      throw new Error('Missing configuration for NFT transfer');
+  async transferFT(params: TransferFTParams, signal?: AbortSignal): Promise<void> {
+    const config = await configService.getConfig();
+    const { non_quorum_node_address, user_did, contracts_info } = config;
+
+    if (!non_quorum_node_address || !user_did) {
+      throw new Error('Node address and user DID are required');
     }
 
     try {
       // Step 1: Execute smart contract
-      const transferData: NFTTransferData = {
-        transfer_sample_nft: {
+      const smartContractData = {
+        transfer_sample_ft: {
           name: "rubix1",
-          nft_info: {
-            comment: `NFT Transfer - ${Date.now()}`,
-            nft: transferInfo.nftId,
-            nft_data: "",
-            nft_value: transferInfo.value,
-            owner: transferInfo.owner,
-            receiver: transferInfo.recipient
+          ft_info: {
+            comment: `Transfer ${params.amount} ${params.tokenName}`,
+            ft_count: parseInt(params.amount),
+            ft_name: params.tokenName,
+            sender: user_did,
+            creatorDID: params.creatorDid,
+            receiver: params.receiverDid
           }
         }
       };
 
-      const executeRequest: SmartContractRequest = {
-        comment: `Transfer NFT Request - ${Date.now()}`,
-        executorAddr: config.user_did,
+      const executeRequest = {
+        comment: `Transfer FT ${params.tokenName}`,
+        executorAddr: user_did,
         quorumType: 2,
-        smartContractData: JSON.stringify(transferData),
-        smartContractToken: config.contracts_info.nft.contract_hash
+        smartContractData: JSON.stringify(smartContractData),
+        smartContractToken: contracts_info.ft.contract_hash
       };
 
       console.log('Execute Transfer Request:', executeRequest);
@@ -240,7 +252,7 @@ export const api = {
         executeRequest,
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
           signal
         }
@@ -257,7 +269,7 @@ export const api = {
       // Step 2: Submit signature using the request ID
       console.log('Submitting signature for request:', requestId);
 
-      const signatureRequest: SignatureRequest = {
+      const signatureRequest = {
         id: requestId,
         mode: 0,
         password: "mypassword"
@@ -282,16 +294,16 @@ export const api = {
 
       // Step 3: Poll for transfer status
       console.log('Starting to poll transfer status...');
-      await this.pollStatus(config.contracts_info.nft.contract_hash, 'transfer', signal);
-      console.log('NFT transfer process completed');
+      await this.pollStatus(contracts_info.ft.contract_hash, 'transfer', signal);
+      console.log('FT transfer process completed');
     } catch (error) {
       if (axios.isCancel(error)) {
         throw new Error('Operation cancelled');
       }
-      console.error('Error in transferNFT:', error);
+      console.error('Error in transferFT:', error);
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;
-        throw new Error(`Failed to transfer NFT: ${errorMessage}`);
+        throw new Error(`Failed to transfer FT: ${errorMessage}`);
       }
       throw error;
     }

@@ -9,7 +9,7 @@ interface NFTCardProps extends NFT {
 export default function NFTCard({ nft, owner_did, nft_value, onTransfer }: NFTCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-transform hover:scale-105">
-      <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-blue-100 p-4 flex items-center justify-center">
+      <div className="w-full h-48 bg-gradient-to-br from-green-100 to-green-50 p-4 flex items-center justify-center">
         <img 
           src="https://cdn-icons-png.flaticon.com/512/6298/6298900.png"
           alt="NFT Placeholder"
@@ -40,7 +40,7 @@ export default function NFTCard({ nft, owner_did, nft_value, onTransfer }: NFTCa
         </div>
         <button
           onClick={onTransfer}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors font-medium text-sm"
         >
           <Send size={16} />
           Transfer NFT

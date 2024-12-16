@@ -9,36 +9,55 @@ Sample App Config:
 }
 '''
 import json
+import os
 
-APP_CONFIG_LOCATION = "../app.node.json"
+# Use absolute path
+APP_CONFIG_LOCATION = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../app.node.json"))
+
+def create_default_config():
+    default_config = {
+        "user_did": "",
+        "non_quorum_node_address": "",
+        "nft_contract_hash": "",
+        "nft_contract_path": ""
+    }
+    with open(APP_CONFIG_LOCATION, 'w') as f:
+        json.dump(default_config, f, indent=4)
+    return default_config
 
 def update_config(
+        feature="",
         user_did="",
         non_quorum_node_address="",
-        nft_contract_hash = "",
-        nft_contract_path = ""
+        contract_hash = "",
+        contract_path = ""
     ):
     config_data = get_config()
-
+    
     if user_did != "":
         config_data["user_did"] = user_did
     
     if non_quorum_node_address != "":
         config_data["non_quorum_node_address"] = non_quorum_node_address
 
-    if nft_contract_hash != "":
-        config_data["nft_contract_hash"] = nft_contract_hash
+    if contract_hash != "":
+        config_data["contracts_info"][feature]["contract_hash"] = contract_hash
 
-    if nft_contract_path != "":
-        config_data["nft_contract_path"] = nft_contract_path
+    if contract_path != "":
+        config_data["contracts_info"][feature]["contract_path"] = contract_path
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(APP_CONFIG_LOCATION), exist_ok=True)
     
     with open(APP_CONFIG_LOCATION, 'w') as f:
         json.dump(config_data, f, indent=4)
 
 def get_config():
-    config_data = {}
-
-    with open(APP_CONFIG_LOCATION, 'r') as file:
-        config_data = json.load(file)
-
-    return config_data
+    if not os.path.exists(APP_CONFIG_LOCATION):
+        return create_default_config()
+        
+    try:
+        with open(APP_CONFIG_LOCATION, 'r') as file:
+            return json.load(file)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return create_default_config()

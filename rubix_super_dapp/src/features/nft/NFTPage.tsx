@@ -18,23 +18,49 @@ function NFTPage() {
   const [nfts, setNfts] = React.useState<NFT[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [config, setConfig] = React.useState<Partial<AppConfig>>({});
-  const [configError, setConfigError] = React.useState<string | null>(null);
+  
+  // Initialize connection state as empty
+  const [config, setConfig] = React.useState<Partial<AppConfig>>({
+    non_quorum_node_address: '',
+    user_did: '',
+    contracts_info: {
+      nft: {
+        contract_hash: '',
+        contract_path: '',
+        callback_url: ''
+      },
+      ft: {
+        contract_hash: '',
+        contract_path: '',
+        callback_url: ''
+      }
+    }
+  });
   const [recommendedValues, setRecommendedValues] = React.useState<AppConfig | null>(null);
   const [isTransferring, setIsTransferring] = React.useState(false);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [transferSuccess, setTransferSuccess] = React.useState(false);
 
-  // Load recommended values from app.node.json
+  // Set page title
+  useEffect(() => {
+    document.title = 'NFT | Rubix Super DApp';
+  }, []);
+
+  // Load only recommended values from app.node.json
   useEffect(() => {
     const loadRecommendedValues = async () => {
       try {
         const values = await configService.getConfig();
-        console.log('Loaded recommended values:', values); // Debug log
+        console.log('Loaded recommended values:', values);
         setRecommendedValues(values);
-        setConfig(prev => ({ ...prev, nft_contract_hash: values.nft_contract_hash }));
+        // Update config with recommended values
+        setConfig(prev => ({ 
+          ...prev, 
+          contracts_info: values.contracts_info 
+        }));
       } catch (err) {
         console.error('Failed to load recommended values:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load recommended values');
       }
     };
     loadRecommendedValues();
@@ -49,37 +75,45 @@ function NFTPage() {
 
   const handleNodeConnect = async (url: string) => {
     try {
-      setConfigError(null);
+      await configService.updateConfig({ non_quorum_node_address: url });
       setConfig(prev => ({ ...prev, non_quorum_node_address: url }));
+      setError(null);
     } catch (err) {
-      setConfigError(err instanceof Error ? err.message : 'Failed to update node configuration');
+      console.error('Failed to update node configuration:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update node configuration');
     }
   };
 
-  const handleNodeDisconnect = () => {
+  const handleNodeDisconnect = async () => {
     try {
-      setConfigError(null);
+      await configService.updateConfig({ non_quorum_node_address: '' });
       setConfig(prev => ({ ...prev, non_quorum_node_address: '' }));
+      setError(null);
     } catch (err) {
-      setConfigError(err instanceof Error ? err.message : 'Failed to update node configuration');
+      console.error('Failed to update node configuration:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update node configuration');
     }
   };
 
   const handleWalletConnect = async (did: string) => {
     try {
-      setConfigError(null);
+      await configService.updateConfig({ user_did: did });
       setConfig(prev => ({ ...prev, user_did: did }));
+      setError(null);
     } catch (err) {
-      setConfigError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
+      console.error('Failed to update wallet configuration:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
     }
   };
 
-  const handleWalletDisconnect = () => {
+  const handleWalletDisconnect = async () => {
     try {
-      setConfigError(null);
+      await configService.updateConfig({ user_did: '' });
       setConfig(prev => ({ ...prev, user_did: '' }));
+      setError(null);
     } catch (err) {
-      setConfigError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
+      console.error('Failed to update wallet configuration:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
     }
   };
 
@@ -95,11 +129,11 @@ function NFTPage() {
         non_quorum_node_address: config.non_quorum_node_address,
         user_did: config.user_did
       });
-      setNfts(Array.isArray(nftList) ? nftList : []); // Ensure nftList is an array
+      setNfts(Array.isArray(nftList) ? nftList : []);
     } catch (err) {
       console.error('Error fetching NFTs:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while fetching NFTs');
-      setNfts([]); // Reset NFTs on error
+      setNfts([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -117,7 +151,7 @@ function NFTPage() {
       return;
     }
 
-    if (!config.non_quorum_node_address || !config.user_did || !config.nft_contract_hash) {
+    if (!config.non_quorum_node_address || !config.user_did || !config.contracts_info?.nft?.contract_hash) {
       console.log('Current config:', config);
       setError('Missing configuration. Please ensure node and wallet are connected.');
       return;
@@ -138,12 +172,11 @@ function NFTPage() {
         {
           non_quorum_node_address: config.non_quorum_node_address,
           user_did: config.user_did,
-          nft_contract_hash: config.nft_contract_hash
+          contracts_info: config.contracts_info
         }
       );
 
       setTransferSuccess(true);
-      // Refresh NFT list after successful transfer
       await fetchNFTs();
     } catch (err) {
       console.error('Error transferring NFT:', err);
@@ -158,7 +191,6 @@ function NFTPage() {
     setSelectedNFT(null);
     setError(null);
     setTransferSuccess(false);
-    // Refresh NFT list when modal closes
     if (config.non_quorum_node_address && config.user_did) {
       fetchNFTs();
     }
@@ -166,13 +198,16 @@ function NFTPage() {
 
   const handleMintModalClose = () => {
     setMintModalOpen(false);
-    // Refresh NFT list after modal closes
     if (config.non_quorum_node_address && config.user_did) {
       fetchNFTs();
     }
   };
 
-  const isConfigured = Boolean(config.user_did && config.non_quorum_node_address && config.nft_contract_hash);
+  const isConfigured = Boolean(
+    config.user_did && 
+    config.non_quorum_node_address && 
+    config.contracts_info?.nft?.contract_hash
+  );
 
   const renderNFTContent = () => {
     if (!config.non_quorum_node_address) {
@@ -196,7 +231,7 @@ function NFTPage() {
     if (isLoading) {
       return (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading NFTs...</p>
         </div>
       );
@@ -242,11 +277,15 @@ function NFTPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {configError && (
+      {error && (
         <div className="bg-red-50 p-4">
-          <p className="text-red-600 text-center">{configError}</p>
+          <p className="text-red-600 text-center">{error}</p>
         </div>
       )}
+
+      <div className="text-center py-6">
+        <h1 className="text-2xl font-bold text-gray-900">Non-Fungible Token (NFT)</h1>
+      </div>
       
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -286,7 +325,7 @@ function NFTPage() {
             <button
               onClick={handleRefresh}
               disabled={!isConfigured || isLoading}
-              className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="p-2 text-gray-600 hover:text-green-700 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
               title="Refresh NFT list"
             >
               <RefreshCw 
@@ -297,7 +336,7 @@ function NFTPage() {
           </div>
           <button
             onClick={() => setMintModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
             disabled={!isConfigured}
           >
             <Plus size={20} />

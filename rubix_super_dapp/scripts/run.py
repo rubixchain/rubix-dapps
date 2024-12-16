@@ -10,9 +10,48 @@ import requests
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-WASM_FILE_PATH = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "nft_contract", "artifacts", "nft_contract.wasm")))
-RAW_CODE_PATH = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "nft_contract", "src", "lib.rs")))
-STATE_FILE_JSON = os.path.abspath(os.path.join(script_dir, "state.json"))
+
+def deploy_nft_contract(deployer_did):
+    feature = "nft"
+
+    wasm_file_path = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "nft_contract", "artifacts", "nft_contract.wasm")))
+    raw_code_path = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "nft_contract", "src", "lib.rs")))
+    state_file_json = os.path.abspath(os.path.join(script_dir, "state.json"))
+
+    contract_hash = generate_smart_contract(wasm_file_path, raw_code_path, state_file_json, deployer_did, 20005, 10505)
+    
+    deploy_smart_contract(contract_hash, deployer_did, 20005, 10505)
+
+    subscribe_smart_contract(contract_hash, 20005, 10505)
+
+    app_config = get_config()
+    
+    # Register Dapp Callback URLs
+    register_callback_url(app_config["non_quorum_node_address"], contract_hash, app_config["contracts_info"][feature]["callback_url"])
+    
+    update_config(feature=feature, contract_hash=contract_hash, contract_path=wasm_file_path)
+    
+
+def deploy_ft_contract(deployer_did):
+    feature = "ft"
+
+    wasm_file_path = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "ft_contract", "artifacts", "ft_contract.wasm")))
+    raw_code_path = os.path.abspath(os.path.join(script_dir, os.path.join("..", "backend", "ft_contract", "src", "lib.rs")))
+    state_file_json = os.path.abspath(os.path.join(script_dir, "state.json"))
+
+    contract_hash = generate_smart_contract(wasm_file_path, raw_code_path, state_file_json, deployer_did, 20005, 10505)
+    
+    deploy_smart_contract(contract_hash, deployer_did, 20005, 10505)
+
+    subscribe_smart_contract(contract_hash, 20005, 10505)
+
+    app_config = get_config()
+    
+    # Register Dapp Callback URLs
+    register_callback_url(app_config["non_quorum_node_address"], contract_hash, app_config["contracts_info"][feature]["callback_url"])
+    
+    update_config(feature=feature, contract_hash=contract_hash, contract_path=wasm_file_path)
+    
 
 def register_callback_url(rubix_node_url, contract_hash, callback_url_endpoint):
     callback_url = f"http://localhost:8080{callback_url_endpoint}"
@@ -51,15 +90,6 @@ if __name__=='__main__':
     # Run Non-Quorum node
     deployer_did = run_non_quorum_nodes(1)    
 
-    # Generate Smart Contract
-    contract_hash = generate_smart_contract(WASM_FILE_PATH, RAW_CODE_PATH, STATE_FILE_JSON, deployer_did, 20005, 10505)
-    
-    deploy_smart_contract(contract_hash, deployer_did, 20005, 10505)
-
-    subscribe_smart_contract(contract_hash, 20005, 10505)
-
-    app_config = get_config()
-    
-    register_callback_url(app_config["non_quorum_node_address"], contract_hash, app_config["dapp_server_api"])
-    
-    update_config(nft_contract_hash=contract_hash, nft_contract_path=WASM_FILE_PATH)
+    # Deploy Contracts
+    deploy_nft_contract(deployer_did=deployer_did)
+    deploy_ft_contract(deployer_did=deployer_did)

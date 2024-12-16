@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './shared/components/Navbar.tsx';
 import HomePage from './pages/HomePage.tsx';
 import NFTPage from './features/nft/NFTPage.tsx';
-import DeployingSoon from './pages/DeployingSoon.tsx';
+import FTPage from './features/ft/FTPage.tsx';
+//import DeployingSoon from './pages/DeployingSoon.tsx';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -40,8 +41,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/nft" element={<NFTPage />} />
-            <Route path="/ft" element={<DeployingSoon />} />
-            <Route path="/zk-app" element={<DeployingSoon />} />
+            <Route path="/ft" element={<FTPage />} />
           </Routes>
         </div>
       </Router>

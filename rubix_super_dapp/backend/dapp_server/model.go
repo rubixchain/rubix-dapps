@@ -11,12 +11,16 @@ type ContractInputRequest struct {
 	SmartContractHash string `json:"smart_contract_hash"` //port should also be added here, so that the api can understand which node.
 }
 
+type ContractInfo struct {
+	ContractHash string `json:"contract_hash"`
+	ContractPath string `json:"contract_path"`
+	CallBackUrl  string `json:"callback_url"`
+}
+
 type Config struct {
-	UserDid         string `json:"user_did"`
-	NodeAddress     string `json:"non_quorum_node_address"`
-	NftContractHash string `json:"nft_contract_hash"`
-	NftContractPath string `json:"nft_contract_path"`
-	DappServerApi   string `json:"dapp_server_api"`
+	UserDid       string                   `json:"user_did"`
+	NodeAddress   string                   `json:"non_quorum_node_address"`
+	ContractsInfo map[string]*ContractInfo `json:"contracts_info"`
 }
 
 type SmartContractDataReply struct {
