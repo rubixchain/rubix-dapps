@@ -1,0 +1,1 @@
+export const RUBIX_WALLET_URL = 'http://localhost:5174';

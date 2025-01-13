@@ -4,54 +4,30 @@ import { CreateFTForm } from './components/CreateFTForm';
 import { Modal } from '../../shared/components/Modal';
 import type { AppConfig } from '../../shared/types/config';
 import type { FTFormData } from './types/ft';
-import ConnectionForm from '../../shared/components/ConnectionForm';
-import { configService } from '../../shared/services/config';
 import { api as ftService } from './services/api';
 import type { FTInfo } from './services/api';
 import { AlertCircle } from 'lucide-react';
 
-type Props = {
-  config?: AppConfig;
-};
+interface FTPageProps {
+  config: AppConfig;
+}
 
-function FTPage({ config }: Props) {
+function FTPage({ config }: FTPageProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
-  const [recommendedValues, setRecommendedValues] = useState<AppConfig | null>(null);
   const [fts, setFts] = useState<FTInfo[]>([]); // Initialize with empty array
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  // Initialize connection state
-  const [connectionConfig, setConnectionConfig] = useState<Partial<AppConfig>>({
-    non_quorum_node_address: '',
-    user_did: ''
-  });
 
   // Refs for abort controllers
   const createAbortController = useRef<AbortController | null>(null);
   const transferAbortController = useRef<AbortController | null>(null);
 
-  // Load recommended values from app.node.json
-  useEffect(() => {
-    const loadRecommendedValues = async () => {
-      try {
-        const values = await configService.getConfig();
-        console.log('Loaded recommended values:', values);
-        setRecommendedValues(values);
-      } catch (err) {
-        console.error('Failed to load recommended values:', err);
-        setModalError(err instanceof Error ? err.message : 'Failed to load recommended values');
-      }
-    };
-    loadRecommendedValues();
-  }, []);
-
   const fetchFTs = async () => {
-    if (!connectionConfig.non_quorum_node_address || !connectionConfig.user_did) {
+    if (!config.non_quorum_node_address || !config.user_did) {
       setFts([]); // Reset to empty array when not connected
       return;
     }
@@ -75,56 +51,10 @@ function FTPage({ config }: Props) {
     await fetchFTs();
   };
 
-  // Fetch FTs when both connection forms are filled
+  // Fetch FTs when config changes
   useEffect(() => {
     fetchFTs();
-  }, [connectionConfig.non_quorum_node_address, connectionConfig.user_did]);
-
-  const handleNodeConnect = async (url: string) => {
-    try {
-      await configService.updateConfig({ non_quorum_node_address: url });
-      setConnectionConfig(prev => ({ ...prev, non_quorum_node_address: url }));
-      setModalError(null);
-    } catch (err) {
-      console.error('Failed to update node configuration:', err);
-      setModalError(err instanceof Error ? err.message : 'Failed to update node configuration');
-    }
-  };
-
-  const handleNodeDisconnect = async () => {
-    try {
-      await configService.updateConfig({ non_quorum_node_address: '' });
-      setConnectionConfig(prev => ({ ...prev, non_quorum_node_address: '' }));
-      setModalError(null);
-      setFts([]); // Reset to empty array on disconnect
-    } catch (err) {
-      console.error('Failed to update node configuration:', err);
-      setModalError(err instanceof Error ? err.message : 'Failed to update node configuration');
-    }
-  };
-
-  const handleWalletConnect = async (did: string) => {
-    try {
-      await configService.updateConfig({ user_did: did });
-      setConnectionConfig(prev => ({ ...prev, user_did: did }));
-      setModalError(null);
-    } catch (err) {
-      console.error('Failed to update wallet configuration:', err);
-      setModalError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
-    }
-  };
-
-  const handleWalletDisconnect = async () => {
-    try {
-      await configService.updateConfig({ user_did: '' });
-      setConnectionConfig(prev => ({ ...prev, user_did: '' }));
-      setModalError(null);
-      setFts([]); // Reset to empty array on disconnect
-    } catch (err) {
-      console.error('Failed to update wallet configuration:', err);
-      setModalError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
-    }
-  };
+  }, [config.non_quorum_node_address, config.user_did]);
 
   const handleCreateClick = () => {
     setIsCreateModalOpen(true);
@@ -233,12 +163,12 @@ function FTPage({ config }: Props) {
   }, []);
 
   const isConfigured = Boolean(
-    connectionConfig.user_did && 
-    connectionConfig.non_quorum_node_address
+    config.user_did && 
+    config.non_quorum_node_address
   );
 
   const renderContent = () => {
-    if (!connectionConfig.non_quorum_node_address) {
+    if (!config.non_quorum_node_address) {
       return (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
@@ -247,7 +177,7 @@ function FTPage({ config }: Props) {
       );
     }
 
-    if (!connectionConfig.user_did) {
+    if (!config.user_did) {
       return (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
@@ -288,37 +218,6 @@ function FTPage({ config }: Props) {
 
       <div className="text-center py-6">
         <h1 className="text-2xl font-bold text-gray-900">Fungible Token (FT)</h1>
-      </div>
-
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col items-center space-y-2">
-            {recommendedValues && (
-              <p className="text-sm text-gray-600 text-center">
-                Enter the recommended values for Blockchain address: <span className="font-mono">{recommendedValues.non_quorum_node_address}</span> and Wallet DID: <span className="font-mono">{recommendedValues.user_did}</span> (created by scripts)
-              </p>
-            )}
-            <p className="text-sm text-gray-600 text-center mb-4">
-              To create a new DID for testing FT Transfer, run the command <span className="font-mono">python create_did.py</span> present inside <span className="font-mono">scripts</span> directory
-            </p>
-            <div className="flex gap-6 items-center w-full">
-              <ConnectionForm 
-                type="node" 
-                onConnect={handleNodeConnect}
-                onDisconnect={handleNodeDisconnect}
-                value={connectionConfig.non_quorum_node_address || ''}
-                isConnected={Boolean(connectionConfig.non_quorum_node_address)}
-              />
-              <ConnectionForm 
-                type="wallet" 
-                onConnect={handleWalletConnect}
-                onDisconnect={handleWalletDisconnect}
-                value={connectionConfig.user_did || ''}
-                isConnected={Boolean(connectionConfig.user_did)}
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="container mx-auto py-8">

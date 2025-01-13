@@ -19,7 +19,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0', // Allow external access
-    port: 5173,
+    port: 5172,
     watch: {
       usePolling: true, // Enable polling for Docker volumes
       interval: 1000 // Check for changes every second

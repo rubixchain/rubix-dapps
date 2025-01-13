@@ -38,7 +38,7 @@ const app = express();
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'http://localhost:5172',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: true
@@ -180,6 +180,6 @@ const PORT = process.env.PORT || 3000;
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Accepting requests from: http://localhost:5173`);
+  console.log(`Accepting requests from: http://localhost:5172`);
   console.log(`File uploads will be stored in: ${path.join(__dirname, 'uploads')}`);
 });

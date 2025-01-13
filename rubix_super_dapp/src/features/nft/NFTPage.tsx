@@ -1,8 +1,6 @@
 import React, { Suspense, lazy, useEffect } from 'react';
 import { AlertCircle, Plus, RefreshCw } from 'lucide-react';
-import ConnectionForm from '../../shared/components/ConnectionForm.tsx';
 import { api } from './services/api.ts';
-import { configService } from '../../shared/services/config.ts';
 import type { NFT } from './types/nft.ts';
 import type { AppConfig } from '../../shared/types/config.ts';
 
@@ -11,32 +9,17 @@ const NFTCard = lazy(() => import('./components/NFTCard.tsx'));
 const TransferModal = lazy(() => import('./components/TransferModal.tsx'));
 const MintNFTForm = lazy(() => import('./components/MintNFTForm.tsx'));
 
-function NFTPage() {
+interface NFTPageProps {
+  config: AppConfig;
+}
+
+function NFTPage({ config }: NFTPageProps) {
   const [isTransferModalOpen, setTransferModalOpen] = React.useState(false);
   const [isMintModalOpen, setMintModalOpen] = React.useState(false);
   const [selectedNFT, setSelectedNFT] = React.useState<NFT | null>(null);
   const [nfts, setNfts] = React.useState<NFT[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  
-  // Initialize connection state as empty
-  const [config, setConfig] = React.useState<Partial<AppConfig>>({
-    non_quorum_node_address: '',
-    user_did: '',
-    contracts_info: {
-      nft: {
-        contract_hash: '',
-        contract_path: '',
-        callback_url: ''
-      },
-      ft: {
-        contract_hash: '',
-        contract_path: '',
-        callback_url: ''
-      }
-    }
-  });
-  const [recommendedValues, setRecommendedValues] = React.useState<AppConfig | null>(null);
   const [isTransferring, setIsTransferring] = React.useState(false);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [transferSuccess, setTransferSuccess] = React.useState(false);
@@ -46,76 +29,12 @@ function NFTPage() {
     document.title = 'NFT | Rubix Super DApp';
   }, []);
 
-  // Load only recommended values from app.node.json
-  useEffect(() => {
-    const loadRecommendedValues = async () => {
-      try {
-        const values = await configService.getConfig();
-        console.log('Loaded recommended values:', values);
-        setRecommendedValues(values);
-        // Update config with recommended values
-        setConfig(prev => ({ 
-          ...prev, 
-          contracts_info: values.contracts_info 
-        }));
-      } catch (err) {
-        console.error('Failed to load recommended values:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load recommended values');
-      }
-    };
-    loadRecommendedValues();
-  }, []);
-
-  // Only fetch NFTs when both node and wallet are connected
+  // Fetch NFTs when config changes
   useEffect(() => {
     if (config.non_quorum_node_address && config.user_did) {
       fetchNFTs();
     }
   }, [config.non_quorum_node_address, config.user_did]);
-
-  const handleNodeConnect = async (url: string) => {
-    try {
-      await configService.updateConfig({ non_quorum_node_address: url });
-      setConfig(prev => ({ ...prev, non_quorum_node_address: url }));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to update node configuration:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update node configuration');
-    }
-  };
-
-  const handleNodeDisconnect = async () => {
-    try {
-      await configService.updateConfig({ non_quorum_node_address: '' });
-      setConfig(prev => ({ ...prev, non_quorum_node_address: '' }));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to update node configuration:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update node configuration');
-    }
-  };
-
-  const handleWalletConnect = async (did: string) => {
-    try {
-      await configService.updateConfig({ user_did: did });
-      setConfig(prev => ({ ...prev, user_did: did }));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to update wallet configuration:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
-    }
-  };
-
-  const handleWalletDisconnect = async () => {
-    try {
-      await configService.updateConfig({ user_did: '' });
-      setConfig(prev => ({ ...prev, user_did: '' }));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to update wallet configuration:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update wallet configuration');
-    }
-  };
 
   const fetchNFTs = async () => {
     if (!config.non_quorum_node_address || !config.user_did) {
@@ -286,37 +205,6 @@ function NFTPage() {
       <div className="text-center py-6">
         <h1 className="text-2xl font-bold text-gray-900">Non-Fungible Token (NFT)</h1>
       </div>
-      
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col items-center space-y-2">
-            {recommendedValues && (
-              <p className="text-sm text-gray-600 text-center">
-                Enter the recommended values for Blockchain address: <span className="font-mono">{recommendedValues.non_quorum_node_address}</span> and Wallet DID: <span className="font-mono">{recommendedValues.user_did}</span> (created by scripts)
-              </p>
-            )}
-            <p className="text-sm text-gray-600 text-center mb-4">
-              To create a new DID for testing NFT Transfer, run the command <span className="font-mono">python create_did.py</span> present inside <span className="font-mono">scripts</span> directory
-            </p>
-            <div className="flex gap-6 items-center w-full">
-              <ConnectionForm 
-                type="node" 
-                onConnect={handleNodeConnect}
-                onDisconnect={handleNodeDisconnect}
-                value={config.non_quorum_node_address || ''}
-                isConnected={Boolean(config.non_quorum_node_address)}
-              />
-              <ConnectionForm 
-                type="wallet" 
-                onConnect={handleWalletConnect}
-                onDisconnect={handleWalletDisconnect}
-                value={config.user_did || ''}
-                isConnected={Boolean(config.user_did)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
@@ -366,7 +254,7 @@ function NFTPage() {
             isOpen={isMintModalOpen}
             onClose={handleMintModalClose}
             isConfigured={isConfigured}
-            config={config as Required<AppConfig>}
+            config={config}
           />
         )}
       </Suspense>
