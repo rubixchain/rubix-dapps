@@ -4,8 +4,7 @@ from .utils import save_to_config_file
 from app.app_config import update_config
 
 
-def run_non_quorum_nodes(n_nodes):
-    start_idx = 5
+def run_non_quorum_nodes(n_nodes, start_idx=5):
     quorum_config = get_quorum_config()
 
     non_quorum_config = setup_rubix_nodes(start_idx, start_idx + n_nodes - 1)

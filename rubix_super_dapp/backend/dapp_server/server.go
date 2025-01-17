@@ -144,7 +144,7 @@ func nftDappHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, resultFinal)
 }
 
-// Handler function for /callback/nft
+// Handler function for /callback/ft
 func ftDappHandler(c *gin.Context) {
 	var req ContractInputRequest
 
@@ -228,6 +228,7 @@ func ftDappHandler(c *gin.Context) {
 		hostFnRegistry,
 		wasmbridge.WithRubixNodeAddress(config.NodeAddress),
 		wasmbridge.WithQuorumType(2),
+
 	)
 	if err != nil {
 		func() {

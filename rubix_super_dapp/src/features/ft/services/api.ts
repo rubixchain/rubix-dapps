@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { configService } from '../../../shared/services/config';
+import { RUBIX_SAFE_PASS_API } from '../../../constants';
+
 
 const STATUS_CHECK_URL = 'http://localhost:8080/request-status';
 const STATUS_CHECK_INTERVAL = 6000; // 6 seconds
@@ -52,21 +54,31 @@ interface StatusResponse {
 export const api = {
   async getFTsByDID(): Promise<FTInfo[]> {
     const config = await configService.getConfig();
-    const { non_quorum_node_address, user_did } = config;
+    const { non_quorum_node_address, user_did, user_token } = config;
 
     if (!non_quorum_node_address || !user_did) {
       throw new Error('Node address and user DID are required');
     }
 
-    const response = await fetch(
-      `${non_quorum_node_address}/api/get-ft-info-by-did?did=${user_did}`
+    console.log("USER DID ", user_token);
+
+    const response = await axios.get(
+      `${RUBIX_SAFE_PASS_API}/get_all_ft?did=${user_did}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user_token}`
+        }
+      }
     );
 
-    if (!response.ok) {
+    console.log(response)
+
+    if (!response.data.status) {
       throw new Error('Failed to fetch FT information');
     }
 
-    const data: FTResponse = await response.json();
+    const data: FTResponse = await response.data;
     return data.ft_info;
   },
 
@@ -121,7 +133,7 @@ export const api = {
 
   async createFT(params: CreateFTParams, signal?: AbortSignal): Promise<void> {
     const config = await configService.getConfig();
-    const { non_quorum_node_address, user_did, contracts_info } = config;
+    const { non_quorum_node_address, user_did, contracts_info, user_token } = config;
 
     if (!non_quorum_node_address || !user_did) {
       throw new Error('Node address and user DID are required');
@@ -136,7 +148,7 @@ export const api = {
             did: params.creatorDid,
             ft_count: parseInt(params.tokenSupply),
             ft_name: params.tokenName,
-            token_count: parseInt(params.rbtLocked)
+            token_count: parseInt(params.rbtLocked),
           }
         }
       };
@@ -152,11 +164,12 @@ export const api = {
       console.log('Execute Request:', executeRequest);
 
       const executeResponse = await axios.post<SmartContractResponse>(
-        `/api/execute-smart-contract`,
+        `/execute-smart-contract`,
         executeRequest,
         {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user_token}`
           },
           signal
         }
@@ -164,37 +177,37 @@ export const api = {
 
       console.log('Smart contract execution response:', executeResponse.data);
 
-      if (!executeResponse.data.status) {
-        throw new Error(executeResponse.data.message || 'Smart contract execution failed');
-      }
+      // if (!executeResponse.data.status) {
+      //   throw new Error(executeResponse.data.message || 'Smart contract execution failed');
+      // }
 
-      const requestId = executeResponse.data.result.id;
+      // const requestId = executeResponse.data.result.id;
 
-      // Step 2: Submit signature using the request ID
-      console.log('Submitting signature for request:', requestId);
+      // // Step 2: Submit signature using the request ID
+      // console.log('Submitting signature for request:', requestId);
 
-      const signatureRequest = {
-        id: requestId,
-        mode: 0,
-        password: "mypassword"
-      };
+      // const signatureRequest = {
+      //   id: requestId,
+      //   mode: 0,
+      //   password: "mypassword"
+      // };
 
-      const signatureResponse = await axios.post<SignatureResponse>(
-        `/api/signature-response`,
-        signatureRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          signal
-        }
-      );
+      // const signatureResponse = await axios.post<SignatureResponse>(
+      //   `/api/signature-response`,
+      //   signatureRequest,
+      //   {
+      //     headers: {
+      //       'Content-Type': 'application/json'
+      //     },
+      //     signal
+      //   }
+      // );
 
-      console.log('Signature response:', signatureResponse.data);
+      // console.log('Signature response:', signatureResponse.data);
 
-      if (!signatureResponse.data.status) {
-        throw new Error(signatureResponse.data.message || 'Signature submission failed');
-      }
+      // if (!signatureResponse.data.status) {
+      //   throw new Error(signatureResponse.data.message || 'Signature submission failed');
+      // }
 
       // Step 3: Poll for creation status
       console.log('Starting to poll creation status...');

@@ -18,6 +18,7 @@ export function RubixWalletConnect({ onConnect, className = '' }: RubixWalletCon
         const userDid = getDIDFromJwtPayload(tokenData);
 
         await configService.updateConfig({ user_did: userDid! });
+        await configService.updateConfig({ user_token: tokenData });
         onConnect?.(userDid!);
 
         window.removeEventListener('message', () => {});

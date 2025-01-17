@@ -60,11 +60,26 @@ def quorum_config(node_config: dict, node_did_alias_map: dict, skip_adding_quoru
         setup_quorums(node_config, node_did_alias_map)
 
 
-def setup_rubix_nodes(node_start_idx, node_end_idx):
+def setup_testnet_node(idx):
+    node_name = "node" + str(idx)
+    node_server, grpc_server = cmd_run_rubix_servers(node_name, idx)
+
+    cfg = {
+        "dids": {},
+        "server": node_server,
+        "grpcPort": grpc_server,
+        "peerId": "",
+    }
+
+    fetch_peer_id(cfg)
+
+    return cfg
+
+def setup_rubix_nodes(node_start_idx, node_end_idx, isTestnet=False):
     node_config = {}
     for idx in range(node_start_idx, node_end_idx+1):
         node_name = "node" + str(idx)
-        node_server, grpc_server = cmd_run_rubix_servers(node_name, idx)
+        node_server, grpc_server = cmd_run_rubix_servers(node_name, idx, isTestnet)
 
         cfg = {
             "dids": {},

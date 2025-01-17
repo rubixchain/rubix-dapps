@@ -6,7 +6,7 @@ const isDocker = process.env.DOCKER === 'true';
 
 // Base URLs based on environment
 const baseUrls = {
-  api: isDocker ? 'http://nginx:20005' : 'http://localhost:20005',
+  api: isDocker ? 'http://nginx:20005' : 'http://20.193.136.169:8080',
   fileServer: isDocker ? 'http://file-server:3000' : 'http://localhost:3000',
   dappServer: isDocker ? 'http://dapp-server:8080' : 'http://localhost:8080'
 };
@@ -25,7 +25,11 @@ export default defineConfig({
       interval: 1000 // Check for changes every second
     },
     proxy: {
-      "/api": {
+      // "/get_all_ft": {
+      //   target: baseUrls.api,
+      //   changeOrigin: true
+      // },
+      "/create_ft": {
         target: baseUrls.api,
         changeOrigin: true
       },

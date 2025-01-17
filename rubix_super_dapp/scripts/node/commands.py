@@ -62,7 +62,7 @@ def run_command(cmd_string, is_output_from_stderr=False):
         else:
             return output, code
 
-def cmd_run_rubix_servers(node_name, server_port_idx):
+def cmd_run_rubix_servers(node_name, server_port_idx, isTestnet=False):
     os.chdir(os.path.join(os.getcwd(), "rubixgoplatform", get_build_dir()))
     
     base_node_server, base_grpc_port = get_base_ports()
@@ -71,9 +71,15 @@ def cmd_run_rubix_servers(node_name, server_port_idx):
 
     cmd_string = ""
     if is_windows_os():
-        cmd_string = f"powershell -Command  Start-Process -FilePath '.\\rubixgoplatform.exe' -ArgumentList 'run -p {node_name} -n {server_port_idx} -s -testNet -grpcPort {grpc_port}' -WindowStyle Hidden"
+        if not isTestnet:
+            cmd_string = f"powershell -Command  Start-Process -FilePath '.\\rubixgoplatform.exe' -ArgumentList 'run -p {node_name} -n {server_port_idx} -s -testNet -grpcPort {grpc_port}' -WindowStyle Hidden"
+        else:
+            cmd_string = f"powershell -Command  Start-Process -FilePath '.\\rubixgoplatform.exe' -ArgumentList 'run -p {node_name} -n {server_port_idx} -s -grpcPort {grpc_port} -testNet -defaultSetup' -WindowStyle Hidden"
     else:
-        cmd_string = f"tmux new -s {node_name} -d ./rubixgoplatform run -p {node_name} -n {server_port_idx} -s -testNet -grpcPort {grpc_port}"
+        if not isTestnet:
+            cmd_string = f"tmux new -s {node_name} -d ./rubixgoplatform run -p {node_name} -n {server_port_idx} -s -testNet -grpcPort {grpc_port}"
+        else:
+            cmd_string = f"tmux new -s {node_name} -d ./rubixgoplatform run -p {node_name} -n {server_port_idx} -s -testNet -defaultSetup -grpcPort {grpc_port}"
     
     _, code = run_command(cmd_string)
     if code != 0:

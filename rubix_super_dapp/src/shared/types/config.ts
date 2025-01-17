@@ -13,6 +13,7 @@ export interface AppConfig {
   user_did: string;
   non_quorum_node_address: string;
   contracts_info: ContractsInfo;
+  user_token: string;
 }
   
 export interface ConfigUpdateResponse {

@@ -1,16 +1,17 @@
 {
-    "user_did": "bafybmieo3mhfak2nabg7kl6qsmgz22chl3qz5uhaxzlge5iihklygly67m",
-    "non_quorum_node_address": "http://localhost:20005",
+    "user_did": "bafybmihrfy3u3uo7l554mpsazr46wgrqa47yoxxzztvkkmossaptit7o7y",
+    "non_quorum_node_address": "http://localhost:20000",
     "contracts_info": {
         "ft": {
-            "contract_hash": "Qmcvhsb6msZVTxMJ49UPH7zSH4o9bG8yNeB7SUawYVLqnB",
-            "contract_path": "D:\\WASM\\rubix-dapps\\rubix_super_dapp\\backend\\ft_contract\\artifacts\\ft_contract.wasm",
+            "contract_hash": "QmasNQXYDRJFQmLcnU3Sr1n4TnoYNW7HFmBMJmfiTDi7vc",
+            "contract_path": "D:\\wallet-integration\\rubix-dapps\\rubix_super_dapp\\backend\\ft_contract\\artifacts\\ft_contract.wasm",
             "callback_url": "/callback/ft"
         },
         "nft": {
-            "contract_hash": "QmZEu7hGgEoxbaAjUWyNT4BR58Z1RENuiczQc9DAUbCVdZ",
-            "contract_path": "D:\\WASM\\rubix-dapps\\rubix_super_dapp\\backend\\nft_contract\\artifacts\\nft_contract.wasm",
+            "contract_hash": "QmTjtqZGXSWmfbWAg71nJoQRQ8HBQsGJt5rbGYLYDBLEVE",
+            "contract_path": "D:\\wallet-integration\\rubix-dapps\\rubix_super_dapp\\backend\\nft_contract\\artifacts\\nft_contract.wasm",
             "callback_url": "/callback/nft"
         }
-    }
+    },
+    "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcyMzAxOTEsInN1YiI6ImJhZnlibWlkMzR6N2VzcG4zZmZqYm1pNGtrZ2JiN3c1a2Fib3dkenNzeHNjcXpxbHVkZWZqcGdibWZhIn0.ZbmFygC22gGWRsjus6lt7S5jXG1IppaypSl5wxDP1k8"
 }
