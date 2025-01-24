@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,10 +9,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	wasmbridge "github.com/rubixchain/rubix-wasm/go-wasm-bridge"
 )
+
+const SAFE_PASS_URL = "http://98.70.51.190:7777"
 
 // Handler function for /callback/nft
 func nftDappHandler(c *gin.Context) {
@@ -95,8 +98,9 @@ func nftDappHandler(c *gin.Context) {
 	wasmModule, err := wasmbridge.NewWasmModule(
 		config.ContractsInfo["nft"].ContractPath,
 		hostFnRegistry,
-		wasmbridge.WithRubixNodeAddress(config.NodeAddress),
+		wasmbridge.WithRubixNodeAddress(SAFE_PASS_URL),
 		wasmbridge.WithQuorumType(2),
+		wasmbridge.WithSafePassBearerToken(config.SafePassBearerToken),
 	)
 	if err != nil {
 		log.Printf("Failed to initialize WASM module: %v", err)
@@ -226,9 +230,9 @@ func ftDappHandler(c *gin.Context) {
 	wasmModule, err := wasmbridge.NewWasmModule(
 		config.ContractsInfo["ft"].ContractPath,
 		hostFnRegistry,
-		wasmbridge.WithRubixNodeAddress(config.NodeAddress),
+		wasmbridge.WithRubixNodeAddress(SAFE_PASS_URL),
 		wasmbridge.WithQuorumType(2),
-
+		wasmbridge.WithSafePassBearerToken(config.SafePassBearerToken),
 	)
 	if err != nil {
 		func() {
@@ -259,8 +263,8 @@ func ftDappHandler(c *gin.Context) {
 	var response BasicResponse
 
 	// Convert JSON string to struct
-	if executionResult == "success" {
-		response = BasicResponse{Status: true, Message: "NFT Transferred Succesfully"}
+	if executionResult == "success" || strings.Contains(executionResult, "FT created successfull") {
+		response = BasicResponse{Status: true, Message: "FT operation Succesfully"}
 	} else {
 		err = json.Unmarshal([]byte(executionResult), &response)
 		if err != nil {
@@ -343,19 +347,19 @@ func bootupServer() {
 
 	// Configure CORS middleware
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:  []string{"Origin", "Content-Type", "Accept"},
+		ExposeHeaders: []string{"Content-Length"},
 	}))
 
 	nftDappCallbackHandler := config.ContractsInfo["nft"].CallBackUrl
 	ftDappCallbackHandler := config.ContractsInfo["ft"].CallBackUrl
-	
+
 	// Define endpoints
 	router.POST(nftDappCallbackHandler, nftDappHandler) // NFT
-	router.POST(ftDappCallbackHandler, ftDappHandler) // FT
-	
+	router.POST(ftDappCallbackHandler, ftDappHandler)   // FT
+
 	router.GET("/request-status", getRequestStatusHandler)
 
 	// Start the server on port 8080

@@ -6,7 +6,7 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/rubixchain/rubix-wasm/go-wasm-bridge v0.0.0-20241118115925-3758cac8285d
+	github.com/rubixchain/rubix-wasm/go-wasm-bridge v0.1.2-SafePass.1
 )
 
 require (
@@ -39,4 +39,3 @@ require (
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-

@@ -101,7 +101,7 @@ if __name__=='__main__':
     complete_binary_path = os.path.join(os.path.abspath("./rubixgoplatform"), build_folder)
 
     # Clone and build Rubixgoplatform
-    clone_and_build("https://github.com/rubixchain/rubixgoplatform.git", "development", os_name)
+    clone_and_build("https://github.com/rubixchain/rubixgoplatform.git", "maneesha/wallet-cum-explorer", os_name)
 
     fetch_testnet_swarm_key(complete_binary_path)
 
@@ -114,4 +114,4 @@ if __name__=='__main__':
 
     # Deploy Contracts
     deploy_nft_contract(deployer_did=deployer_did)
-    deploy_ft_contract(deployer_did=deployer_did)
+    deploy_ft_contract(deployer_did=deployer_did)d

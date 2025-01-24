@@ -49,11 +49,11 @@ def download_ipfs_binary(os_name, version, build_dir):
     download_url = ""
     
     if os_name == "Linux":
-        download_url = f"https://dist.ipfs.tech/kubo/{version}/kubo_{version}_linux-amd64.tar.gz"
+        download_url = f"https://github.com/ipfs/kubo/releases/download/{version}/kubo_{version}_linux-amd64.tar.gz"
     elif os_name == "Windows":
-        download_url = f"https://dist.ipfs.tech/kubo/{version}/kubo_{version}_windows-amd64.zip"
+        download_url = f"https://github.com/ipfs/kubo/releases/download/{version}/kubo_{version}_windows-amd64.zip"
     elif os_name == "Darwin":  # MacOS
-        download_url = f"https://dist.ipfs.tech/kubo/{version}/kubo_{version}_darwin-amd64.tar.gz"
+        download_url = f"https://github.com/ipfs/kubo/releases/download/{version}/kubo_{version}_darwin-amd64.tar.gz"
     else:
         raise ValueError("Unsupported operating system")
 

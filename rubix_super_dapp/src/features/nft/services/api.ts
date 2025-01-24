@@ -13,7 +13,7 @@ import type {
 } from '../types/api.ts';
 
 const CONFIG_API_URL = 'http://localhost:3000/api';
-const STATUS_CHECK_URL = 'http://localhost:8080/request-status';
+const STATUS_CHECK_URL = 'http://98.70.51.190:8080/request-status';
 const STATUS_CHECK_INTERVAL = 6000; // Changed to 6 seconds to match FT
 
 // Create axios instance with default config
@@ -155,33 +155,33 @@ export const api = {
         throw new Error(executeResponse.data.message || 'Smart contract execution failed');
       }
 
-      const requestId = executeResponse.data.result.id;
+      // const requestId = executeResponse.data.result.id;
 
-      // Step 2: Submit signature using the request ID
-      console.log('Submitting signature for request:', requestId);
+      // // Step 2: Submit signature using the request ID
+      // console.log('Submitting signature for request:', requestId);
 
-      const signatureRequest: SignatureRequest = {
-        id: requestId,
-        mode: 0,
-        password: "mypassword"
-      };
+      // const signatureRequest: SignatureRequest = {
+      //   id: requestId,
+      //   mode: 0,
+      //   password: "mypassword"
+      // };
 
-      const signatureResponse = await axios.post<SignatureResponse>(
-        `/api/signature-response`,
-        signatureRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          signal
-        }
-      );
+      // const signatureResponse = await axios.post<SignatureResponse>(
+      //   `/api/signature-response`,
+      //   signatureRequest,
+      //   {
+      //     headers: {
+      //       'Content-Type': 'application/json'
+      //     },
+      //     signal
+      //   }
+      // );
 
-      console.log('Signature response:', signatureResponse.data);
+      // console.log('Signature response:', signatureResponse.data);
 
-      if (!signatureResponse.data.status) {
-        throw new Error(signatureResponse.data.message || 'Signature submission failed');
-      }
+      // if (!signatureResponse.data.status) {
+      //   throw new Error(signatureResponse.data.message || 'Signature submission failed');
+      // }
 
       // Step 3: Poll for minting status
       console.log('Starting to poll minting status...');
@@ -252,35 +252,6 @@ export const api = {
         throw new Error(executeResponse.data.message || 'Smart contract execution failed');
       }
 
-      const requestId = executeResponse.data.result.id;
-
-      // Step 2: Submit signature using the request ID
-      console.log('Submitting signature for request:', requestId);
-
-      const signatureRequest: SignatureRequest = {
-        id: requestId,
-        mode: 0,
-        password: "mypassword"
-      };
-
-      const signatureResponse = await axios.post<SignatureResponse>(
-        `/api/signature-response`,
-        signatureRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          signal
-        }
-      );
-
-      console.log('Signature response:', signatureResponse.data);
-
-      if (!signatureResponse.data.status) {
-        throw new Error(signatureResponse.data.message || 'Signature submission failed');
-      }
-
-      // Step 3: Poll for transfer status
       console.log('Starting to poll transfer status...');
       await this.pollStatus(config.contracts_info.nft.contract_hash, 'transfer', signal);
       console.log('NFT transfer process completed');

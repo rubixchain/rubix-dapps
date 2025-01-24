@@ -3,7 +3,7 @@ import type { AppConfig, ConfigUpdateResponse } from '../types/config';
 export const configService = {
   async getConfig(): Promise<AppConfig> {
     try {
-      const response = await fetch('http://localhost:3000/file_server/config');
+      const response = await fetch('/file_server/config');
       if (!response.ok) {
         throw new Error('Failed to load configuration');
       }
@@ -16,7 +16,7 @@ export const configService = {
 
   async updateConfig(updates: Partial<AppConfig>): Promise<ConfigUpdateResponse> {
     try {
-      const response = await fetch('http://localhost:3000/file_server/writeConfig', {
+      const response = await fetch('/file_server/writeConfig', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

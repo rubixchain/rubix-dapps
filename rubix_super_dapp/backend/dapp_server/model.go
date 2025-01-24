@@ -18,9 +18,10 @@ type ContractInfo struct {
 }
 
 type Config struct {
-	UserDid       string                   `json:"user_did"`
-	NodeAddress   string                   `json:"non_quorum_node_address"`
-	ContractsInfo map[string]*ContractInfo `json:"contracts_info"`
+	UserDid            string                   `json:"user_did"`
+	NodeAddress        string                   `json:"non_quorum_node_address"`
+	ContractsInfo      map[string]*ContractInfo `json:"contracts_info"`
+	SafePassBearerToken string                   `json:"user_token"`
 }
 
 type SmartContractDataReply struct {

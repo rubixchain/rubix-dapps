@@ -3,7 +3,7 @@ import { configService } from '../../../shared/services/config';
 import { RUBIX_SAFE_PASS_API } from '../../../constants';
 
 
-const STATUS_CHECK_URL = 'http://localhost:8080/request-status';
+const STATUS_CHECK_URL = 'http://98.70.51.190:8080/request-status';
 const STATUS_CHECK_INTERVAL = 6000; // 6 seconds
 
 export interface FTInfo {
@@ -56,11 +56,9 @@ export const api = {
     const config = await configService.getConfig();
     const { non_quorum_node_address, user_did, user_token } = config;
 
-    if (!non_quorum_node_address || !user_did) {
-      throw new Error('Node address and user DID are required');
+    if (!non_quorum_node_address || !user_did || !user_token) {
+      throw new Error('Any one of Node address, user DID and user Token is found empty');
     }
-
-    console.log("USER DID ", user_token);
 
     const response = await axios.get(
       `${RUBIX_SAFE_PASS_API}/get_all_ft?did=${user_did}`,
@@ -140,7 +138,7 @@ export const api = {
     }
 
     try {
-      // Step 1: Execute smart contract
+      // Execute smart contract
       const smartContractData = {
         mint_sample_ft: {
           name: "rubix1",
@@ -164,7 +162,7 @@ export const api = {
       console.log('Execute Request:', executeRequest);
 
       const executeResponse = await axios.post<SmartContractResponse>(
-        `/execute-smart-contract`,
+        `${RUBIX_SAFE_PASS_API}/execute-smart-contract?rubixNodePort=20000`,
         executeRequest,
         {
           headers: {
@@ -177,39 +175,13 @@ export const api = {
 
       console.log('Smart contract execution response:', executeResponse.data);
 
-      // if (!executeResponse.data.status) {
-      //   throw new Error(executeResponse.data.message || 'Smart contract execution failed');
-      // }
+      if (!executeResponse.data.status) {
+        if (!String(executeResponse.data).includes("Smart Contract Token Executed successfully in")) {
+          throw new Error(executeResponse.data.message || 'Smart contract execution failed');
+        }
+      }
 
-      // const requestId = executeResponse.data.result.id;
-
-      // // Step 2: Submit signature using the request ID
-      // console.log('Submitting signature for request:', requestId);
-
-      // const signatureRequest = {
-      //   id: requestId,
-      //   mode: 0,
-      //   password: "mypassword"
-      // };
-
-      // const signatureResponse = await axios.post<SignatureResponse>(
-      //   `/api/signature-response`,
-      //   signatureRequest,
-      //   {
-      //     headers: {
-      //       'Content-Type': 'application/json'
-      //     },
-      //     signal
-      //   }
-      // );
-
-      // console.log('Signature response:', signatureResponse.data);
-
-      // if (!signatureResponse.data.status) {
-      //   throw new Error(signatureResponse.data.message || 'Signature submission failed');
-      // }
-
-      // Step 3: Poll for creation status
+      //  Poll for creation status
       console.log('Starting to poll creation status...');
       await this.pollStatus(contracts_info.ft.contract_hash, 'mint', signal);
       console.log('FT creation process completed');
@@ -228,7 +200,7 @@ export const api = {
 
   async transferFT(params: TransferFTParams, signal?: AbortSignal): Promise<void> {
     const config = await configService.getConfig();
-    const { non_quorum_node_address, user_did, contracts_info } = config;
+    const { non_quorum_node_address, user_did, contracts_info, user_token } = config;
 
     if (!non_quorum_node_address || !user_did) {
       throw new Error('Node address and user DID are required');
@@ -260,12 +232,14 @@ export const api = {
 
       console.log('Execute Transfer Request:', executeRequest);
 
+
       const executeResponse = await axios.post<SmartContractResponse>(
-        `/api/execute-smart-contract`,
+        `${RUBIX_SAFE_PASS_API}/execute-smart-contract?rubixNodePort=20000`,
         executeRequest,
         {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user_token}`
           },
           signal
         }
@@ -274,38 +248,11 @@ export const api = {
       console.log('Smart contract execution response:', executeResponse.data);
 
       if (!executeResponse.data.status) {
-        throw new Error(executeResponse.data.message || 'Smart contract execution failed');
-      }
-
-      const requestId = executeResponse.data.result.id;
-
-      // Step 2: Submit signature using the request ID
-      console.log('Submitting signature for request:', requestId);
-
-      const signatureRequest = {
-        id: requestId,
-        mode: 0,
-        password: "mypassword"
-      };
-
-      const signatureResponse = await axios.post<SignatureResponse>(
-        `/api/signature-response`,
-        signatureRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          signal
+        if (!String(executeResponse.data).includes("Smart Contract Token Executed successfully in")) {
+          throw new Error(executeResponse.data.message || 'Smart contract execution failed');
         }
-      );
-
-      console.log('Signature response:', signatureResponse.data);
-
-      if (!signatureResponse.data.status) {
-        throw new Error(signatureResponse.data.message || 'Signature submission failed');
       }
 
-      // Step 3: Poll for transfer status
       console.log('Starting to poll transfer status...');
       await this.pollStatus(contracts_info.ft.contract_hash, 'transfer', signal);
       console.log('FT transfer process completed');
