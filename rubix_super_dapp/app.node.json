@@ -3,12 +3,12 @@
     "non_quorum_node_address": "http://localhost:20000",
     "contracts_info": {
         "ft": {
-            "contract_hash": "QmasNQXYDRJFQmLcnU3Sr1n4TnoYNW7HFmBMJmfiTDi7vc",
+            "contract_hash": "QmfA2YnvUt6kNuinK639aCsxX7RLxtsuX2cN6cBpwL8ujX",
             "contract_path": "D:\\wallet-integration\\rubix-dapps\\rubix_super_dapp\\backend\\ft_contract\\artifacts\\ft_contract.wasm",
             "callback_url": "/callback/ft"
         },
         "nft": {
-            "contract_hash": "QmTjtqZGXSWmfbWAg71nJoQRQ8HBQsGJt5rbGYLYDBLEVE",
+            "contract_hash": "QmWtvEg1QPVXRSL3kPMkrWZeQhYmAsqG7ywvGwzMSKc3pA",
             "contract_path": "D:\\wallet-integration\\rubix-dapps\\rubix_super_dapp\\backend\\nft_contract\\artifacts\\nft_contract.wasm",
             "callback_url": "/callback/nft"
         }
