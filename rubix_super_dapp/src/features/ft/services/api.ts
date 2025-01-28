@@ -2,7 +2,6 @@ import axios from 'axios';
 import { configService } from '../../../shared/services/config';
 import { RUBIX_SAFE_PASS_API } from '../../../constants';
 
-
 const STATUS_CHECK_URL = 'http://98.70.51.190:8080/request-status';
 const STATUS_CHECK_INTERVAL = 6000; // 6 seconds
 

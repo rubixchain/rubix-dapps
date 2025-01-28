@@ -87,11 +87,6 @@ function NFTPage({ config }: NFTPageProps) {
           owner: selectedNFT.owner_did,
           recipient,
           value
-        },
-        {
-          non_quorum_node_address: config.non_quorum_node_address,
-          user_did: config.user_did,
-          contracts_info: config.contracts_info
         }
       );
 

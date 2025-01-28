@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { NFTResponse, NFTListResponse, NFT } from '../types/nft.ts';
+import { configService } from '../../../shared/services/config';
 import type { AppConfig } from '../../../shared/types/config.ts';
 import type {
   SmartContractRequest,
@@ -11,6 +12,7 @@ import type {
   NFTTransferInfo,
   NFTTransferData
 } from '../types/api.ts';
+import { RUBIX_SAFE_PASS_API } from '../../../constants';
 
 const CONFIG_API_URL = 'http://localhost:3000/api';
 const STATUS_CHECK_URL = 'http://98.70.51.190:8080/request-status';
@@ -108,10 +110,12 @@ export const api = {
 
   async mintNFT(
     nftInfo: NFTMintInfo,
-    config: Pick<AppConfig, 'non_quorum_node_address' | 'user_did' | 'contracts_info'>,
     signal?: AbortSignal
   ): Promise<void> {
-    if (!config.non_quorum_node_address || !config.user_did || !config.contracts_info?.nft?.contract_hash) {
+    const config = await configService.getConfig();
+    const { non_quorum_node_address, user_did, contracts_info, user_token } = config;
+
+    if (!non_quorum_node_address || !user_did || !contracts_info?.nft?.contract_hash) {
       throw new Error('Missing configuration for NFT minting');
     }
 
@@ -121,7 +125,7 @@ export const api = {
         mint_sample_nft: {
           name: "rubix1",
           nft_info: {
-            did: config.user_did,
+            did: user_did,
             metadata: nftInfo.metadataPath,
             artifact: nftInfo.artifactPath
           }
@@ -130,20 +134,21 @@ export const api = {
 
       const executeRequest: SmartContractRequest = {
         comment: `Mint NFT Request - ${Date.now()}`,
-        executorAddr: config.user_did,
+        executorAddr: user_did,
         quorumType: 2,
         smartContractData: JSON.stringify(mintData),
-        smartContractToken: config.contracts_info.nft.contract_hash
+        smartContractToken: contracts_info.nft.contract_hash
       };
 
       console.log('Execute Request:', executeRequest);
 
       const executeResponse = await axios.post<SmartContractResponse>(
-        `/api/execute-smart-contract`,
+        `${RUBIX_SAFE_PASS_API}/execute-smart-contract?rubixNodePort=20000`,
         executeRequest,
         {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user_token}`
           },
           signal
         }
@@ -185,7 +190,7 @@ export const api = {
 
       // Step 3: Poll for minting status
       console.log('Starting to poll minting status...');
-      await this.pollStatus(config.contracts_info.nft.contract_hash, 'mint', signal);
+      await this.pollStatus(contracts_info.nft.contract_hash, 'mint', signal);
       console.log('NFT minting process completed');
     } catch (error) {
       if (axios.isCancel(error)) {
@@ -202,12 +207,10 @@ export const api = {
 
   async transferNFT(
     transferInfo: NFTTransferInfo,
-    config: Pick<AppConfig, 'non_quorum_node_address' | 'user_did' | 'contracts_info'>,
     signal?: AbortSignal
   ): Promise<void> {
-    if (!config.non_quorum_node_address || !config.user_did || !config.contracts_info?.nft?.contract_hash) {
-      throw new Error('Missing configuration for NFT transfer');
-    }
+    const config = await configService.getConfig();
+    const { non_quorum_node_address, user_did, contracts_info, user_token } = config;
 
     try {
       // Step 1: Execute smart contract
@@ -227,20 +230,21 @@ export const api = {
 
       const executeRequest: SmartContractRequest = {
         comment: `Transfer NFT Request - ${Date.now()}`,
-        executorAddr: config.user_did,
+        executorAddr: user_did,
         quorumType: 2,
         smartContractData: JSON.stringify(transferData),
-        smartContractToken: config.contracts_info.nft.contract_hash
+        smartContractToken: contracts_info.nft.contract_hash
       };
 
       console.log('Execute Transfer Request:', executeRequest);
 
       const executeResponse = await axios.post<SmartContractResponse>(
-        `/api/execute-smart-contract`,
+        `${RUBIX_SAFE_PASS_API}/execute-smart-contract?rubixNodePort=20000`,
         executeRequest,
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user_token}`
           },
           signal
         }
@@ -253,7 +257,7 @@ export const api = {
       }
 
       console.log('Starting to poll transfer status...');
-      await this.pollStatus(config.contracts_info.nft.contract_hash, 'transfer', signal);
+      await this.pollStatus(contracts_info.nft.contract_hash, 'transfer', signal);
       console.log('NFT transfer process completed');
     } catch (error) {
       if (axios.isCancel(error)) {

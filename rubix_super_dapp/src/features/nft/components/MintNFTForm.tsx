@@ -39,7 +39,7 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
       setStatus('Uploading files to server...');
       console.log('Uploading files...');
       
-      const response = await fetch('http://localhost:3000/file_server/upload', {
+      const response = await fetch('/file_server/upload', {
         method: 'POST',
         body: formData,
       });
@@ -63,11 +63,6 @@ export default function MintNFTForm({ isOpen, onClose, isConfigured, config }: M
           {
             artifactPath: uploadResult.paths.artifactPath,
             metadataPath: uploadResult.paths.metadataPath
-          },
-          {
-            non_quorum_node_address: config.non_quorum_node_address,
-            user_did: config.user_did,
-            contracts_info: config.contracts_info
           }
         );
         
