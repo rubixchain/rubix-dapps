@@ -1,5 +1,5 @@
 {
-    "user_did": "bafybmihrfy3u3uo7l554mpsazr46wgrqa47yoxxzztvkkmossaptit7o7y",
+    "user_did": "bafybmih2oudgz4vyf5b3vxmgn6mi7qaoudfwsffeqt4now2u3lp357xsey",
     "non_quorum_node_address": "http://localhost:20000",
     "contracts_info": {
         "ft": {
@@ -13,5 +13,5 @@
             "callback_url": "/callback/nft"
         }
     },
-    "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcyMzAxOTEsInN1YiI6ImJhZnlibWlkMzR6N2VzcG4zZmZqYm1pNGtrZ2JiN3c1a2Fib3dkenNzeHNjcXpxbHVkZWZqcGdibWZhIn0.ZbmFygC22gGWRsjus6lt7S5jXG1IppaypSl5wxDP1k8"
+    "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzg0NzQ4NTAsInN1YiI6ImJhZnlibWloMm91ZGd6NHZ5ZjViM3Z4bWduNm1pN3Fhb3VkZndzZmZlcXQ0bm93MnUzbHAzNTd4c2V5In0.9McLGJneCq0uPPCtYSybw8hN9CimTwFYfztVLHob54s"
 }

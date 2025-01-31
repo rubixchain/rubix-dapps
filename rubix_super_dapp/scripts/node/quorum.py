@@ -9,7 +9,7 @@ QUORUM_CONFIG_PATH = "./quorum_config.json"
 
 def run_quorum_nodes(only_run_nodes, skip_adding_quorums, node_registry_key = "quorum", quorum_config_path = "./quorum_config.json", quorum_list_file_name = "quorumlist.json"):
     print("Running Rubix Quorum nodes......")
-    node_config = setup_rubix_nodes(0, 4)
+    node_config = setup_rubix_nodes(0, 4, True)
     print("Rubix Quorum nodes are now running")
 
     did_alias = "did_quorum"

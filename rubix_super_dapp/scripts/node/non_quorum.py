@@ -7,7 +7,7 @@ from app.app_config import update_config
 def run_non_quorum_nodes(n_nodes, start_idx=5):
     quorum_config = get_quorum_config()
 
-    non_quorum_config = setup_rubix_nodes(start_idx, start_idx + n_nodes - 1)
+    non_quorum_config = setup_rubix_nodes(start_idx, start_idx + n_nodes - 1, True)
     for idx in range(n_nodes):
         node_key = "node" + str(start_idx + idx)
 
