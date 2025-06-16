@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	wasmbridge "github.com/rubixchain/rubix-wasm/go-wasm-bridge"
 )
 
@@ -17,6 +18,7 @@ var (
 )
 
 func main() {
+	_ = godotenv.Load()
 	r := gin.Default()
 	r.POST("/api/voting-contract", handleVotingContract)
 	r.Run(":8080")
@@ -33,8 +35,8 @@ func wrapSuccess(f func(code int, obj any), msg string) {
 }
 
 func handleVotingContract(c *gin.Context) {
-	nodeAddress := "http://localhost:20009"
-	contractPath := path.Join("/Users/arnab/TRIE-internal/contracts/voting_contract/artifacts/voting_contract.wasm")
+	nodeAddress := os.Getenv("RUBIX_NODE_ADDRESS")
+	contractPath := os.Getenv("VOTING_CONTRACT_PATH")
 
 	var contractInput struct {
 		Method  string                 `json:"method"`
